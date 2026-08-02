@@ -1,259 +1,717 @@
 # FlowLens
 
-**Status: Requirements and Future-State Design**
+**Turn fragmented business processes into configurable, measurable workflows.**
 
-FlowLens is a business systems transformation platform designed to map fragmented workflows, identify operational friction, preserve the systems and practices that already work, and model a measurable future state.
+FlowLens is an open-source, self-hosted workflow-transformation platform designed to help teams understand how work moves across their organization, identify operational friction, and implement a controlled future state.
 
-Rather than replacing every existing tool, FlowLens demonstrates how a systems analyst can evaluate an organization’s people, processes, systems, data, decisions, and handoffs before designing an improved operating model.
+Instead of replacing every existing business system, FlowLens acts as a coordination and intelligence layer across them. It centralizes workflow ownership, requirements, approvals, exceptions, integrations, audit history, and operational measurements.
 
-## The Project
+> **Current status:** Product definition and system design are complete. Application implementation is beginning. The repository currently contains the business analysis, requirements, architecture, integration contracts, and implementation roadmap that will guide development.
 
-FlowLens uses a fictional company, Northstar Business Services, to demonstrate an end-to-end systems transformation engagement.
+---
 
-Northstar’s contract-to-launch workflow crosses Sales, Legal, Finance, Implementation, Operations, and Executive Leadership. The process currently depends on disconnected systems, spreadsheet tracking, email approvals, Slack updates, duplicated data entry, and manual coordination.
+## Why FlowLens Exists
 
-The existing tools perform many of their individual responsibilities well. The larger failure occurs between those tools, where workflow state, ownership, decisions, and exceptions become fragmented.
+Important business workflows rarely live inside one application.
 
-FlowLens will become the orchestration and intelligence layer across that environment.
+A single process may depend on:
 
-## Business Problem
+- Customer records in a CRM
+- Contracts in an electronic-signature platform
+- Approvals in email or chat
+- Tasks in a project-management system
+- Financial information in a billing platform
+- Status tracking in spreadsheets
+- Institutional knowledge held by individual employees
 
-Northstar’s contract-to-launch process currently spans:
+Each system may perform its own responsibility adequately while the overall workflow remains fragmented.
 
-- Salesforce for customer and opportunity data
-- DocuSign for executed contracts
-- Gmail for Legal and Finance approvals
-- Google Sheets for launch tracking
-- Slack for internal coordination
-- Jira for implementation work
-- NetSuite for billing readiness
-
-No single system provides a complete, reliable view of the workflow.
-
-This creates:
+That fragmentation creates problems such as:
 
 - Duplicate data entry
-- Conflicting status information
-- Invisible or delayed approvals
-- Unclear ownership between departments
-- Weak handoffs
-- Late discovery of blockers
-- Manual leadership reporting
-- Limited auditability
-- Process knowledge that depends on individual coordinators
+- Unclear ownership
+- Missing next actions
+- Approvals without structured evidence
+- Status reports assembled manually
+- Exceptions hidden in email or chat
+- Integration failures visible only in logs
+- Risks discovered after deadlines are missed
+- Different teams reporting conflicting status
+- Limited ability to measure process performance
 
-## Transformation Approach
+FlowLens is being built to address the coordination layer between those systems.
 
-FlowLens follows a systems-analysis-first approach:
+---
 
-1. Understand the business problem.
-2. Inventory the existing systems.
-3. Map the current workflow and data movement.
-4. Identify root causes instead of treating symptoms.
-5. Preserve the capabilities that already work.
-6. Define stakeholder and business requirements.
-7. Design the future-state process and architecture.
-8. Build an orchestration and visibility platform.
-9. Validate the solution through testing and UAT.
-10. Measure the proposed operational improvement.
+## Product Vision
 
-## What FlowLens Will Provide
+FlowLens will allow an organization to:
 
-### System Landscape
+1. Define a reusable workflow template.
+2. Configure stages, fields, requirements, approvals, roles, and rules.
+3. Create work items manually or through integrations.
+4. Assign one accountable owner and an explicit next action.
+5. Move work through controlled stages.
+6. Prevent invalid transitions.
+7. Surface risks and exceptions before deadlines are missed.
+8. Record every important action in an audit history.
+9. Measure workflow performance from structured events.
+10. Improve the process without discarding systems that still provide value.
 
-A visual inventory of the systems participating in the workflow, including ownership, responsibilities, dependencies, and integration gaps.
+The goal is not simply to display workflow data.
 
-### Workflow Control Center
+The goal is to turn a fragmented process into an operational system people can actually use.
 
-A centralized view of active customer launches, workflow stages, owners, approvals, requirements, blockers, and due dates.
+---
 
-### Rules and Routing
+## Product Capabilities
 
-Explainable business rules that determine required approvals, assignments, and workflow paths.
+The initial usable release is designed to include the following capabilities.
+
+### Configurable Workflow Templates
+
+Administrators will be able to define:
+
+- Workflow stages
+- Custom fields
+- Required information
+- Completion requirements
+- Approval requirements
+- User roles
+- Assignment rules
+- Entry and exit conditions
+- Service-level targets
+- Risk rules
+- Exception rules
+- Measurement definitions
+
+Published template versions will be immutable so historical work remains interpretable.
+
+### Work-Item Management
+
+Users will be able to:
+
+- Create work items
+- View active work
+- Update configured fields
+- See the current workflow stage
+- Review stage history
+- Identify the accountable owner
+- Track the next required action
+- Review target dates
+- Complete requirements
+- Request transitions
+- Complete or cancel work through controlled actions
+
+### Structured Assignments
+
+Every active work item can have:
+
+- One accountable owner
+- A next action
+- A due date when required
+- An assignment reason
+- Assignment history
+- Escalation visibility
+
+### Structured Approvals
+
+Approvals will record:
+
+- Approval type
+- Decision-maker
+- Requested date
+- Decision
+- Decision timestamp
+- Conditions
+- Rejection reason
+- Related workflow stage
+
+An email or chat message alone will not count as a tracked approval.
 
 ### Exception Management
 
-Structured detection and tracking for missing information, overdue work, conflicting statuses, failed integrations, and blocked launches.
+FlowLens will make operational problems visible and actionable.
+
+Exceptions can include:
+
+- Type
+- Severity
+- Summary
+- Owning user or department
+- Related workflow stage
+- Created date
+- Resolution target
+- Resolution outcome
+- Approved deferral
+- Supporting audit events
+
+Critical exceptions can prevent workflow completion.
+
+### Risk Detection
+
+Configurable rules will identify conditions such as:
+
+- Missing ownership
+- Overdue assignments
+- Incomplete requirements
+- Approaching target dates
+- Stalled workflow stages
+- Rejected approvals
+- Failed integrations
+- Conflicting external information
+- Unresolved critical exceptions
+
+The first release will use explainable, rule-based risk detection.
+
+### Operational Dashboard
+
+The planned dashboard will show:
+
+- Total active work items
+- Work by workflow stage
+- Work by accountable owner
+- On-track, at-risk, and blocked work
+- Upcoming target dates
+- Overdue assignments
+- Open exceptions by severity
+- Approval status
+- Average cycle time
+- Stage aging
+- First-pass handoff acceptance
+- Integration-processing health
+- Performance against defined targets
 
 ### Audit History
 
-A chronological record of status transitions, ownership changes, approvals, exceptions, and other workflow events.
+Significant actions will create append-only workflow events.
 
-### Transformation Dashboard
+Examples include:
 
-Operational reporting that compares the fragmented current state with clearly defined future-state targets.
+- Work item created
+- Owner assigned
+- Owner changed
+- Stage entered
+- Stage completed
+- Requirement completed
+- Approval requested
+- Approval decided
+- Exception created
+- Exception resolved
+- Risk detected
+- Integration received
+- Integration failed
+- Work item completed
+- Work item canceled
 
-## Design Principles
+Historical evidence will not be silently overwritten.
 
-FlowLens is guided by the following principles:
+### Multiple Intake Methods
 
-- Preserve what works.
-- Fix the process before automating it.
-- Maintain clear systems of record.
-- Make ownership explicit.
-- Treat exceptions as first-class workflow objects.
-- Keep business rules explainable.
-- Preserve human accountability.
-- Design for auditability.
-- Measure operational outcomes.
-- Use only synthetic data.
+FlowLens is designed to accept work through:
 
-## Current-State Findings
+- Manual browser entry
+- CSV import
+- REST API
+- Generic webhooks
+- Source-specific adapters
 
-The discovery analysis identified several root-cause themes.
+All intake methods will use the same validation and workflow rules.
 
-### Fragmented Workflow State
+### Integration Safety
 
-Each system represents only part of the process. No reliable record of the overall launch lifecycle exists.
+The integration layer is designed to support:
 
-### Unstructured Decisions
+- Versioned contracts
+- Schema validation
+- Registered sources
+- Correlation identifiers
+- Idempotency
+- Duplicate-event protection
+- Retry policies
+- Processing history
+- Visible integration failures
+- Adapter-based field mapping
 
-Important Legal, Finance, and readiness decisions occur in communication channels without becoming structured workflow data.
+---
 
-### Manual Reconciliation
+## From Analysis to Implementation
 
-Coordinators must compare multiple systems and determine which information is current.
+FlowLens is intentionally more than a coding exercise.
 
-### Implicit Ownership
+The repository demonstrates an end-to-end systems-analysis process:
 
-Responsibility depends on experience and conversation rather than explicit assignments and handoff rules.
+```mermaid
+flowchart TD
+    A["Business Problem"] --> B["Current-State Analysis"]
+    B --> C["Stakeholder and Requirement Discovery"]
+    C --> D["Future-State Design"]
+    D --> E["Architecture and Data Model"]
+    E --> F["Implementation"]
+    F --> G["Testing and UAT"]
+    G --> H["Measurement and Improvement"]
+```
 
-### Reactive Exception Management
+This project shows how a systems analyst can:
 
-Missing information and stalled work are often discovered only after a launch date becomes threatened.
+- Inherit a messy workflow
+- Understand the systems already in place
+- Identify what is working
+- Find process and ownership gaps
+- Define measurable outcomes
+- Translate business needs into requirements
+- Design a controlled future state
+- Establish traceability
+- Define technical contracts
+- Guide implementation
+- Validate the finished system
 
-### Reporting Without Event History
+---
 
-The current spreadsheet captures an interpreted status but not the complete history that produced it.
+## Northstar Demonstration Scenario
 
-## Target Outcomes
+FlowLens includes a fictional company named **Northstar Business Services** as its primary demonstration scenario.
 
-The following targets are fictional and are used to evaluate the proposed design:
+Northstar manages a contract-to-launch workflow involving:
 
-| Measure | Current-State Estimate | Future-State Target |
-|---|---:|---:|
-| Average contract-to-launch cycle time | 18 business days | 12 business days or fewer |
-| Manual data-entry touchpoints per launch | 14 | 5 or fewer |
-| Launches with an unclear owner | 22% | Less than 3% |
-| Approvals completed outside the tracked workflow | 47% | Less than 5% |
-| At-risk launches identified before the target date | 31% | At least 90% |
-| Time required to prepare weekly reporting | 4 hours | Less than 15 minutes |
+- Sales
+- Legal
+- Finance
+- Implementation
+- Service Delivery
+- Operations
 
-All figures are synthetic. They do not represent an actual company, employer, customer, or production environment.
+Its existing environment includes fictional uses of:
+
+- Salesforce
+- DocuSign
+- Gmail
+- Google Sheets
+- Slack
+- Jira
+- NetSuite
+
+The current process depends on manual handoffs, spreadsheet reconciliation, scattered approvals, and informal exception management.
+
+The Northstar scenario is used to demonstrate how FlowLens can:
+
+- Preserve useful source systems
+- Coordinate work across departments
+- Establish accountable ownership
+- Enforce requirements
+- Record approvals
+- Detect risk
+- Manage exceptions
+- Process external events
+- Produce measurable workflow data
+
+Northstar is a bundled configuration and synthetic dataset. It is not hardcoded into the FlowLens platform.
+
+Another organization could configure a different workflow without changing the core workflow engine.
+
+---
+
+## Product and Demonstration Separation
+
+| FlowLens Platform | Northstar Demonstration |
+|---|---|
+| Generic workflow templates | Contract-to-launch template |
+| Configurable stages | Northstar launch stages |
+| Configurable fields | Customer and contract fields |
+| Generic assignments | Department ownership rules |
+| Generic approvals | Legal and Finance approvals |
+| Generic exceptions | Missing contract and billing blockers |
+| Generic metrics | Launch-performance measures |
+| Adapter framework | Synthetic Salesforce and NetSuite events |
+| Reusable work items | Synthetic customer launches |
+| Self-hosted application | Preloaded demonstration environment |
+
+This separation prevents FlowLens from becoming a one-company or one-workflow application.
+
+---
+
+## Planned Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React, TypeScript, and Vite |
+| Client routing | React Router |
+| Server-state management | TanStack Query |
+| Dashboard visualization | Recharts |
+| Backend API | FastAPI and Python |
+| Request validation | Pydantic |
+| Database | PostgreSQL |
+| Persistence | SQLAlchemy |
+| Database migrations | Alembic |
+| Background processing | Celery |
+| Queue and cache | Redis |
+| Backend testing | Pytest |
+| Frontend testing | Vitest and Testing Library |
+| End-to-end testing | Playwright |
+| Local deployment | Docker Compose |
+| Continuous integration | GitHub Actions |
+| API documentation | OpenAPI |
+
+The initial application will use a modular-monolith architecture. This provides strong domain boundaries without introducing unnecessary distributed-system complexity.
+
+---
+
+## High-Level Architecture
+
+```mermaid
+flowchart TD
+    U["Business Users"] --> WEB["React Web Application"]
+    ADM["Workflow Administrators"] --> WEB
+    WEB --> API["FastAPI Application"]
+    EXT["External Systems"] --> IN["Intake and Adapter Layer"]
+    IN --> API
+    API --> DB["PostgreSQL"]
+    API --> Q["Redis Queue"]
+    Q --> WK["Background Worker"]
+    WK --> DB
+```
+
+FlowLens will be deployable using Docker Compose with:
+
+- Web application
+- API application
+- Background worker
+- PostgreSQL
+- Redis
+- Persistent database storage
+
+---
+
+## Core Domain Model
+
+FlowLens is built around generic platform concepts.
+
+### Administration
+
+- Organization
+- User
+- Role
+- User role
+
+### Workflow Configuration
+
+- Workflow template
+- Workflow-template version
+- Stage definition
+- Field definition
+- Requirement definition
+- Approval definition
+- Rule definition
+- Metric definition
+
+### Workflow Runtime
+
+- Work item
+- Field value
+- External reference
+- Stage history
+- Assignment
+- Approval
+- Requirement
+- Exception
+- Risk snapshot
+
+### Integration and Audit
+
+- Workflow event
+- Integration event
+- Import job
+- Processing attempt
+- Correlation identifier
+
+The complete model is documented in [`docs/data-model.md`](docs/data-model.md).
+
+---
+
+## Planned Installation Experience
+
+When the usable application scaffold is complete, the intended local installation will be:
+
+```bash
+git clone https://github.com/kay-freeman/flowlens.git
+cd flowlens
+cp .env.example .env
+docker compose up --build
+```
+
+The user will then be able to open FlowLens in a browser, load the Northstar demonstration template, and interact with persistent workflow data.
+
+These commands are the target installation experience. They will not work until the application and deployment files are implemented.
+
+---
+
+## Definition of Usable
+
+FlowLens will not be considered usable merely because screenshots or interface mockups exist.
+
+The initial release must allow someone to:
+
+- Clone the repository
+- Configure environment variables
+- Start the application with documented commands
+- Open the application in a browser
+- Use a persistent database
+- Load a workflow template
+- Create work items
+- Assign ownership
+- Complete requirements
+- Record approvals
+- Move work through valid stages
+- Create and resolve exceptions
+- Review workflow history
+- Import records using CSV
+- Submit records through an API
+- Process generic webhook events
+- Review dashboard measurements
+- Restart the application without losing data
+- Follow documentation without assistance from the original developer
+
+---
+
+## Current Project Status
+
+### Phase 1: Business Analysis and Product Definition
+
+- [x] Define the transformation case
+- [x] Document the current state
+- [x] Analyze the existing system landscape
+- [x] Identify pain points and root causes
+- [x] Identify stakeholders
+- [x] Define measurable outcomes
+- [x] Define guardrail measures
+- [x] Establish the reusable product scope
+- [x] Separate the platform from the demonstration scenario
+
+### Phase 2: Requirements and Future-State Design
+
+- [x] Document functional requirements
+- [x] Document business rules
+- [x] Document reporting requirements
+- [x] Document data requirements
+- [x] Document nonfunctional requirements
+- [x] Define acceptance criteria
+- [x] Create the requirements traceability matrix
+- [x] Design the future-state workflow
+- [x] Define the platform data model
+- [x] Define the application architecture
+- [x] Define integration contracts
+
+### Phase 3: Application Foundation
+
+- [ ] Create the monorepo structure
+- [ ] Scaffold the FastAPI backend
+- [ ] Scaffold the React frontend
+- [ ] Configure PostgreSQL
+- [ ] Configure SQLAlchemy and Alembic
+- [ ] Configure Redis and Celery
+- [ ] Create Docker Compose services
+- [ ] Add health checks
+- [ ] Add environment configuration
+- [ ] Establish automated test workflows
+
+### Phase 4: Configurable Workflow Engine
+
+- [ ] Implement organizations, users, and roles
+- [ ] Implement workflow templates
+- [ ] Implement template versioning
+- [ ] Implement stage and field definitions
+- [ ] Implement work items
+- [ ] Implement configurable transitions
+- [ ] Implement assignment rules
+- [ ] Implement requirements
+- [ ] Implement structured approvals
+- [ ] Implement exceptions
+- [ ] Implement workflow events
+- [ ] Implement rule-based risk evaluation
+
+### Phase 5: Intake and Integrations
+
+- [ ] Implement manual work-item intake
+- [ ] Implement CSV validation preview
+- [ ] Implement confirmed CSV processing
+- [ ] Implement REST API intake
+- [ ] Implement generic webhook intake
+- [ ] Implement idempotency
+- [ ] Implement retry handling
+- [ ] Implement visible integration failures
+- [ ] Implement the adapter registry
+- [ ] Add Northstar demonstration adapters
+
+### Phase 6: User Experience and Reporting
+
+- [ ] Build the operational dashboard
+- [ ] Build the work-item queue
+- [ ] Build work-item details
+- [ ] Build the approval queue
+- [ ] Build the exception queue
+- [ ] Build workflow-template administration
+- [ ] Build integration monitoring
+- [ ] Build audit-history views
+- [ ] Add measurement calculations
+- [ ] Add accessible empty, loading, and error states
+
+### Phase 7: Validation and Release
+
+- [ ] Complete backend unit tests
+- [ ] Complete API integration tests
+- [ ] Complete frontend tests
+- [ ] Complete end-to-end tests
+- [ ] Execute Northstar demonstration scenarios
+- [ ] Complete UAT
+- [ ] Validate Docker installation from a clean environment
+- [ ] Add backup and recovery instructions
+- [ ] Complete deployment documentation
+- [ ] Publish the first usable release
+- [ ] Update the portfolio with the completed system
+
+---
 
 ## Documentation
 
-The repository includes the following systems-analysis artifacts:
+### Business Analysis
 
-- [Business Case](docs/business-case.md)  
-  Defines the fictional organization, business problem, transformation opportunity, project scope, and target outcomes.
+- [Business Case](docs/business-case.md)
+- [Current-State Analysis](docs/current-state.md)
+- [Stakeholder Analysis](docs/stakeholders.md)
+- [Success Measures](docs/success-measures.md)
 
-- [Current-State Analysis](docs/current-state.md)  
-  Maps the existing systems, workflow, data movement, manual touchpoints, pain points, root causes, constraints, and capabilities that must be preserved.
+### Requirements and Traceability
 
-- [Stakeholder Analysis](docs/stakeholders.md)  
-  Defines stakeholder responsibilities, goals, information needs, decision authority, conflicts, discovery questions, and adoption risks.
+- [Product Scope](docs/product-scope.md)
+- [Requirements Specification](docs/requirements.md)
+- [Acceptance Criteria](docs/acceptance-criteria.md)
+- [Requirements Traceability Matrix](docs/traceability-matrix.md)
 
-- [Success Measures](docs/success-measures.md)  
-  Defines KPI formulas, future-state targets, guardrails, required workflow events, dashboard measures, and release success criteria.
+### Solution Design
 
-Requirements, future-state architecture, data-model, testing, UAT, and rollout documentation will be added as the project progresses.
+- [Future-State Design](docs/future-state.md)
+- [Architecture](docs/architecture.md)
+- [Data Model](docs/data-model.md)
+- [Integration Contracts](docs/integration-contracts.md)
 
-## Project Roadmap
+Additional implementation, testing, deployment, administration, and user documentation will be added as the product develops.
 
-### Phase 1: Discovery and Analysis
+---
 
-- [x] Define the fictional organization and business problem
-- [x] Document the current system landscape
-- [x] Map the current contract-to-launch workflow
-- [x] Analyze current data movement
-- [x] Create the pain-point register
-- [x] Identify root-cause themes
-- [x] Define stakeholder needs and responsibilities
-- [x] Establish detailed success measures
+## Success Measures
 
-### Phase 2: Requirements and Future State
+The Northstar demonstration will model improvement targets such as:
 
-- [ ] Define functional requirements
-- [ ] Define nonfunctional requirements
-- [ ] Create acceptance criteria
-- [ ] Build the requirements traceability matrix
-- [ ] Design the future-state workflow
-- [ ] Define system boundaries
-- [ ] Document integration contracts
-- [ ] Create the canonical data model
+- Reduced end-to-end workflow cycle time
+- Fewer manual data-entry touchpoints
+- Clear accountable ownership
+- Increased structured approval coverage
+- Earlier risk detection
+- Reduced reporting-preparation time
+- Faster exception resolution
+- Improved first-pass handoff acceptance
+- Reduced customer-data re-entry
+- Reliable integration processing
+- Visible integration failures
+- Complete audit evidence
 
-### Phase 3: Platform Development
+Because FlowLens is currently a portfolio project, displayed improvements will be labeled as:
 
-- [ ] Build the FlowLens application foundation
-- [ ] Implement canonical launch records
-- [ ] Implement workflow stages and transitions
-- [ ] Implement ownership and assignments
-- [ ] Implement approval tracking
-- [ ] Implement exception detection
-- [ ] Implement audit history
-- [ ] Build the system-landscape view
-- [ ] Build the workflow control center
-- [ ] Build the transformation dashboard
+- Synthetic
+- Simulated
+- Modeled
+- Baseline
+- Target
 
-### Phase 4: Quality and Delivery
+The project will not present synthetic outcomes as real organizational results.
 
-- [ ] Add automated tests
-- [ ] Configure continuous integration
-- [ ] Create synthetic demonstration data
-- [ ] Execute UAT scenarios
-- [ ] Document release and rollout strategy
-- [ ] Document limitations and future enhancements
-- [ ] Publish the first formal release
-- [ ] Add FlowLens to the portfolio website
+---
 
-## Repository Structure
+## Guardrails
 
-```text
-flowlens/
-├── docs/
-│   ├── business-case.md
-│   ├── current-state.md
-│   ├── stakeholders.md
-│   └── success-measures.md
-├── LICENSE
-└── README.md
-```
+Operational improvement must not weaken required controls.
 
-The structure will expand as requirements, architecture, application code, tests, and deployment configuration are introduced.
+FlowLens will verify that:
 
-## Privacy and Data
+- Required approvals cannot be bypassed.
+- Work cannot be completed with unresolved critical exceptions.
+- Duplicate external events do not create duplicate workflow actions.
+- Failed integrations create visible exceptions.
+- Human decisions cannot be changed without audit evidence.
+- Restricted decision details remain protected.
+- Workflow events are not silently discarded.
+- Demonstration data contains no real customer, employer, or proprietary information.
 
-FlowLens is a fictional portfolio project.
+---
 
-The repository will not contain:
+## Project Boundaries
+
+The first release will not claim to provide:
+
+- Full multi-tenant SaaS isolation
+- Enterprise single sign-on
+- Production-certified third-party connectors
+- High-availability or multi-region deployment
+- A visual drag-and-drop workflow designer
+- Arbitrary user-authored executable rules
+- Automated migration of active work between template versions
+- Machine-learning risk prediction
+- Native mobile applications
+- Replacement functionality for specialized CRMs, financial platforms, contract systems, or project-management tools
+
+These boundaries keep the first release achievable while preserving a strong reusable foundation.
+
+---
+
+## Portfolio Value
+
+FlowLens demonstrates work across:
+
+- Systems analysis
+- Business-process analysis
+- Current-state assessment
+- Future-state design
+- Requirements engineering
+- Stakeholder analysis
+- Process governance
+- Data modeling
+- Solution architecture
+- API and integration design
+- Workflow automation
+- Auditability
+- Risk management
+- Reporting strategy
+- Test planning
+- User acceptance testing
+- Technical documentation
+- Product implementation
+- Self-hosted deployment
+
+It is designed to show not only the ability to build software, but the ability to determine what should be built, why it should exist, how it should behave, and how its success should be measured.
+
+---
+
+## Data and Privacy
+
+All organizations, people, customer records, transactions, and integration events included in this repository are fictional and synthetic.
+
+FlowLens must not contain:
 
 - Real customer information
-- Employer data
-- Proprietary workflows
+- Employer-owned data
+- Proprietary documentation
 - Production credentials
-- Real contracts
-- Real financial records
-- Private API keys
+- Real access tokens
+- Confidential integration payloads
 
-All organizations, users, records, metrics, and integrations will be simulated.
+---
 
-## Why This Project Exists
+## License
 
-FlowLens is designed to demonstrate more than software development.
+FlowLens is available under the [MIT License](LICENSE).
 
-It demonstrates the ability to:
+---
 
-- Understand a complex business environment
-- Analyze systems and operational workflows
-- Separate symptoms from root causes
-- Preserve valuable existing capabilities
-- Translate stakeholder needs into requirements
-- Design integrations and future-state processes
-- Build reliable and explainable automation
-- Plan testing, rollout, measurement, and adoption
-- Communicate technical decisions clearly
+## Author
 
-The objective is not merely to build another application.
-
-The objective is to show how a fragmented operating model can be understood, redesigned, implemented, and improved.
+Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio project focused on systems analysis, business-systems transformation, workflow design, integration architecture, and operational improvement.
