@@ -1,720 +1,1065 @@
 # FlowLens Architecture
 
-## Document Purpose
+## Purpose
 
-This document defines the proposed application architecture, technology stack, system boundaries, runtime flows, deployment model, and major technical decisions for FlowLens.
+This document defines the technical architecture for FlowLens, a configurable workflow-transformation platform.
 
-The architecture supports the documented future-state workflow while remaining achievable as a portfolio project.
+FlowLens helps organizations replace fragmented, manually coordinated processes with measurable workflows while preserving the existing systems that remain useful.
 
-## Architecture Objectives
+The platform is designed to be:
 
-The FlowLens architecture must:
+- Configurable for different business workflows
+- Deployable without proprietary services
+- Usable through a browser
+- Accessible through a documented API
+- Auditable through structured workflow events
+- Extendable through integration adapters
+- Demonstrable with synthetic data
+- Self-hostable with Docker Compose
 
-1. Separate user-interface, business-rule, integration, and persistence responsibilities.
-2. Support explicit and testable workflow transitions.
-3. Process integration events idempotently.
-4. Preserve append-only audit history.
-5. Make failures and exceptions visible.
-6. Support asynchronous processing and retry behavior.
-7. Generate reproducible operational metrics.
-8. Run consistently in GitHub Codespaces and local Docker environments.
-9. Avoid real credentials and proprietary data.
-10. Remain understandable to technical and nontechnical reviewers.
+The Northstar contract-to-launch scenario is included as a complete demonstration template. It validates the platform’s capabilities but does not define the platform’s underlying data model or architecture.
 
-## Selected Technology Stack
+---
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Frontend | React with TypeScript | Interactive operational interface |
-| Frontend build tool | Vite | Development server and production build |
-| Frontend routing | React Router | Application navigation |
-| Server-state management | TanStack Query | API requests, caching, and refresh behavior |
-| Dashboard visualization | Recharts | Operational and transformation charts |
-| Backend API | FastAPI with Python | Workflow, approval, exception, reporting, and integration APIs |
-| Validation | Pydantic | Request, response, and event-contract validation |
-| ORM | SQLAlchemy | Relational data access |
-| Database migrations | Alembic | Version-controlled schema changes |
-| Primary database | PostgreSQL | Canonical workflow, audit, and metric data |
-| Message broker | Redis | Background task transport |
-| Background processing | Celery | Integration processing, retries, and scheduled evaluations |
-| Backend testing | Pytest | Unit and API testing |
-| Frontend testing | Vitest and Testing Library | Component and interface testing |
-| End-to-end testing | Playwright | Browser-based workflow verification |
-| Containers | Docker and Docker Compose | Reproducible development environment |
-| Continuous integration | GitHub Actions | Automated quality and test checks |
-| API documentation | OpenAPI through FastAPI | Interactive and machine-readable API contract |
+## Architectural Goals
 
-## Why This Stack
+### AG-01: Configurable Workflows
 
-### React and TypeScript
+Administrators must be able to define workflow stages, fields, requirements, approvals, assignments, service-level targets, and business rules without changing application code.
 
-FlowLens requires a rich operational interface containing dashboards, filters, work queues, timelines, approvals, exceptions, and system maps.
+### AG-02: Reusable Platform
 
-TypeScript supports explicit front-end contracts and reduces accidental data-shape inconsistencies.
+Core application components must use generic concepts such as workflow templates, work items, assignments, approvals, exceptions, and events.
 
-### Vite
+Customer-specific terminology must remain in configuration or demonstration packages.
 
-Vite provides a focused React development environment without requiring the project to adopt a full server-rendering framework.
+### AG-03: Traceable Operations
 
-FlowLens is primarily an authenticated operational application rather than a content-driven website.
+Every important workflow action must generate an immutable event containing enough information to establish:
 
-### FastAPI and Python
+- What happened
+- When it happened
+- Who or what initiated it
+- Which work item was affected
+- What changed
+- Why the change occurred when a reason is required
 
-FastAPI provides:
+### AG-04: Integration Safety
 
-- Typed API contracts
-- Pydantic validation
-- Automatic OpenAPI documentation
-- Strong support for asynchronous request handling
-- Straightforward Pytest integration
-- Clear separation between domain logic and HTTP transport
+External events must be validated, recorded, deduplicated, and processed predictably.
 
-Python also complements the TypeScript projects already represented in the portfolio.
+Failed integrations must create visible exceptions rather than remaining hidden in application logs.
 
-### PostgreSQL
+### AG-05: Practical Self-Hosting
 
-FlowLens data is highly relational.
+A user must be able to start FlowLens locally using documented Docker Compose commands and persistent storage.
 
-Launches, stages, assignments, approvals, requirements, exceptions, users, external references, and audit events require:
+### AG-06: Clear Product Boundaries
 
-- Foreign-key integrity
-- Unique constraints
-- Transactional updates
-- Structured querying
-- Historical analysis
+The initial release must provide a dependable workflow-management foundation without claiming to replace specialized systems such as Salesforce, DocuSign, Jira, or NetSuite.
 
-PostgreSQL is therefore a stronger fit than a document-only database.
+### AG-07: Testable Business Rules
 
-### Redis and Celery
+Workflow transitions, approvals, requirements, assignments, integrations, calculations, and guardrails must be testable independently of the user interface.
 
-External events, retries, overdue detection, notifications, and risk recalculation should not depend entirely on a synchronous web request.
+---
 
-Redis and Celery allow FlowLens to demonstrate:
+## System Context
 
-- Background processing
-- Retry policies
-- Scheduled evaluation
-- Failure handling
-- Worker separation
+FlowLens operates as a coordination and intelligence layer across an organization’s existing systems.
 
-PostgreSQL remains the authoritative persistence layer. Redis is not the system of record.
-
-## High-Level Architecture
+It does not require every source system to be replaced. Instead, FlowLens receives operational data, applies workflow rules, tracks responsibility, records decisions, and presents a unified view of progress and risk.
 
 ```mermaid
 flowchart TD
-    USER[Browser User]
-
-    subgraph WEB[React Web Application]
-        UI[Operational Interface]
-        QUERY[API Query Layer]
-    end
-
-    subgraph API[FastAPI Application]
-        ROUTES[API Routes]
-        SERVICES[Domain Services]
-        RULES[Workflow and Risk Rules]
-        ADAPTERS[Integration Adapters]
-    end
-
-    subgraph ASYNC[Background Processing]
-        REDIS[(Redis)]
-        WORKER[Celery Worker]
-        SCHEDULER[Celery Scheduler]
-    end
-
-    subgraph DATA[Persistence]
-        POSTGRES[(PostgreSQL)]
-        AUDIT[Append-Only Audit Events]
-    end
-
-    subgraph EXTERNAL[Simulated External Systems]
-        SF[Salesforce]
-        DS[DocuSign]
-        NS[NetSuite]
-        JR[Jira]
-        SL[Slack]
-    end
-
-    USER --> UI
-    UI --> QUERY
-    QUERY --> ROUTES
-    ROUTES --> SERVICES
-    SERVICES --> RULES
-    SERVICES --> POSTGRES
-    SERVICES --> AUDIT
-    ROUTES --> REDIS
-    REDIS --> WORKER
-    SCHEDULER --> WORKER
-    WORKER --> SERVICES
-    WORKER --> ADAPTERS
-    ADAPTERS --> EXTERNAL
+    U["Business Users"] --> W["FlowLens Web Application"]
+    A["Workflow Administrators"] --> W
+    W --> API["FlowLens API"]
+    S["External Systems"] --> IN["Intake and Integration Layer"]
+    IN --> API
+    API --> DB["PostgreSQL"]
+    API --> Q["Background Job Queue"]
+    Q --> WK["Worker"]
+    WK --> DB
 ```
 
-## Architectural Layers
+---
 
-## Presentation Layer
+## Architecture Style
 
-The React application is responsible for:
+FlowLens uses a modular monolith for the initial release.
 
-- Application navigation
-- Dashboard presentation
-- Launch lists and filters
-- Launch details
-- Work queues
-- Approval actions
-- Exception actions
-- Audit timelines
-- System-landscape visualization
-- Accessible interaction and responsive layout
+This approach provides:
 
-The presentation layer must not independently decide whether a workflow transition, approval, or override is valid.
+- Clear domain boundaries
+- One deployable backend application
+- Simpler local installation
+- Easier transactional consistency
+- Lower operational overhead
+- A practical path to future service extraction
 
-Business decisions remain in the API domain layer.
+The application will not begin as a distributed microservice system. Components that may eventually require independent scaling—such as integrations, background processing, or analytics—will remain logically separated inside the codebase.
 
-## API Layer
+---
 
-FastAPI routes are responsible for:
+## Technology Stack
 
-- HTTP request parsing
-- Authentication-context handling
-- Request validation
-- Authorization checks
-- Calling domain services
-- Serializing responses
-- Returning stable error codes
-- Exposing OpenAPI documentation
+| Layer | Technology | Purpose |
+|---|---|---|
+| Web application | React and TypeScript | Browser-based user experience |
+| Frontend build system | Vite | Development server and production builds |
+| Routing | React Router | Client-side navigation |
+| Server-state management | TanStack Query | API requests, caching, and synchronization |
+| Visualization | Recharts | Dashboard and operational metrics |
+| API | FastAPI and Python | REST API and business operations |
+| Data validation | Pydantic | Request, response, and configuration validation |
+| Persistence | PostgreSQL | Durable workflow and configuration data |
+| Object mapping | SQLAlchemy | Database access and domain persistence |
+| Migrations | Alembic | Controlled schema evolution |
+| Background processing | Celery | Asynchronous integration and metric processing |
+| Queue and cache | Redis | Job transport and short-lived cached data |
+| API testing | Pytest | Unit and integration testing |
+| Frontend testing | Vitest and Testing Library | Component and interaction testing |
+| End-to-end testing | Playwright | Browser-based workflow testing |
+| Local deployment | Docker Compose | Reproducible self-hosted environment |
+| Continuous integration | GitHub Actions | Automated test and quality checks |
+| API documentation | OpenAPI | Interactive and machine-readable API reference |
 
-Routes should remain thin and should not contain major business-rule implementations.
+---
 
-## Domain-Service Layer
+## Major Components
 
-Domain services coordinate business behavior.
+### 1. Web Application
 
-Planned services include:
+The FlowLens web application provides the primary interface for business users and administrators.
+
+Initial views will include:
+
+- Sign-in or demonstration access
+- Operational dashboard
+- Work-item list
+- Work-item details
+- Workflow stage history
+- Assignment management
+- Approval queue
+- Exception queue
+- Template catalog
+- Workflow-template configuration
+- Integration-event status
+- Audit history
+
+The frontend communicates with the backend only through the documented API.
+
+Business rules must not exist exclusively in frontend code.
+
+---
+
+### 2. API Application
+
+The API application is the authoritative entry point for workflow commands and queries.
+
+Responsibilities include:
+
+- Authentication and authorization
+- Organization boundaries
+- Workflow-template management
+- Template-version publishing
+- Work-item creation and updates
+- Stage-transition validation
+- Assignment management
+- Requirement tracking
+- Approval decisions
+- Exception management
+- Risk evaluation
+- Dashboard queries
+- CSV import coordination
+- Webhook intake
+- Event generation
+- Audit retrieval
+
+The API will publish OpenAPI documentation through FastAPI.
+
+---
+
+### 3. Configuration Engine
+
+The configuration engine converts workflow-template definitions into enforceable runtime behavior.
+
+It manages:
+
+- Workflow stages
+- Stage ordering
+- Required fields
+- Requirement definitions
+- Approval definitions
+- Assignment rules
+- Entry conditions
+- Exit conditions
+- Service-level targets
+- Risk rules
+- Exception rules
+- Metric definitions
+
+A draft template can be edited. A published template version becomes immutable.
+
+Existing work items remain associated with the template version under which they were created unless an explicit migration operation is introduced in a future release.
+
+---
+
+### 4. Workflow Engine
+
+The workflow engine controls the lifecycle of work items.
+
+Responsibilities include:
+
+- Creating work items from published templates
+- Establishing the initial stage
+- Validating requested transitions
+- Checking requirements
+- Checking approvals
+- Assigning accountable owners
+- Recording stage-entry and stage-exit times
+- Detecting overdue actions
+- Creating exceptions
+- Emitting workflow events
+- Updating workflow status
+
+The workflow engine must produce the same result whether a valid command originates from the web application, API, CSV import, or integration adapter.
+
+---
+
+### 5. Intake Layer
+
+FlowLens supports multiple ways to create or update work items.
+
+#### Manual Intake
+
+Authorized users can create and update work items through the web application.
+
+#### CSV Intake
+
+Users can upload CSV files using a documented template.
+
+The import process must:
+
+1. Validate headers.
+2. Validate each row.
+3. Preview valid and invalid records.
+4. Reject or quarantine invalid records.
+5. prevent duplicate work items according to configured matching rules.
+6. Record the import result.
+
+#### REST API Intake
+
+External clients can create and update work items through authenticated API endpoints.
+
+Requests must use documented schemas and return structured validation errors.
+
+#### Generic Webhook Intake
+
+External systems can send events to a generic webhook endpoint.
+
+Webhook processing must support:
+
+- Source identification
+- Event identifiers
+- Correlation identifiers
+- Schema validation
+- Idempotency
+- Processing status
+- Retry handling
+- Visible failures
+
+---
+
+### 6. Adapter Registry
+
+The adapter registry converts external-system events into FlowLens commands.
+
+An adapter is responsible for:
+
+- Recognizing a supported source and event type
+- Validating source-specific payloads
+- Mapping external fields to FlowLens fields
+- Identifying the related work item
+- Producing a platform command
+- Returning a structured processing result
+
+The initial release may include demonstration adapters for the Northstar scenario. These adapters use synthetic payloads and do not claim production certification for third-party platforms.
+
+Core workflow behavior must not depend on any specific adapter.
+
+---
+
+### 7. Event and Audit Layer
+
+Every significant workflow operation creates a `WorkflowEvent`.
+
+Examples include:
+
+- `work_item_created`
+- `field_updated`
+- `owner_assigned`
+- `owner_changed`
+- `stage_entered`
+- `stage_completed`
+- `requirement_completed`
+- `approval_requested`
+- `approval_decided`
+- `exception_created`
+- `exception_assigned`
+- `exception_resolved`
+- `risk_detected`
+- `integration_received`
+- `integration_processed`
+- `integration_failed`
+- `work_item_completed`
+- `work_item_canceled`
+
+Events are append-only audit records.
+
+Corrections must create additional events rather than rewriting historical evidence.
+
+---
+
+### 8. Background Worker
+
+The background worker handles operations that should not delay interactive API requests.
+
+Initial responsibilities include:
+
+- Processing accepted integration events
+- Retrying permitted integration failures
+- Evaluating overdue assignments
+- Evaluating service-level targets
+- Calculating risk indicators
+- Refreshing dashboard summaries
+- Processing larger CSV imports
+- Generating scheduled measurements
+
+Background jobs must be idempotent whenever retrying could otherwise create duplicate workflow actions.
+
+---
+
+### 9. Reporting and Measurement Layer
+
+The reporting layer calculates operational measures from stored workflow data and events.
+
+It supports:
+
+- Active work by stage
+- Work by accountable owner
+- On-track, at-risk, and blocked work
+- Upcoming target dates
+- Overdue assignments
+- Open exceptions
+- Approval status
+- Cycle time
+- Stage aging
+- First-pass handoff acceptance
+- Manual-touch measurements
+- Integration-processing health
+- Audit completeness
+
+Reports must distinguish among:
+
+- Synthetic demonstration results
+- Current-state baselines
+- Future-state targets
+- Actual workflow results
+
+The initial dashboard will prioritize operational visibility. More advanced analytics can be introduced after the core workflow engine is dependable.
+
+---
+
+## Logical Domain Modules
+
+The backend will be organized into the following logical modules:
+
+| Module | Responsibility |
+|---|---|
+| `organizations` | Organization settings and boundaries |
+| `identity` | Users, roles, and authorization |
+| `templates` | Workflow-template configuration and versioning |
+| `work_items` | Runtime work-item records and field values |
+| `workflow` | Stage transitions and lifecycle rules |
+| `assignments` | Ownership and next actions |
+| `approvals` | Structured approval requests and decisions |
+| `requirements` | Required work and completion evidence |
+| `exceptions` | Operational problems, ownership, and resolution |
+| `events` | Audit and workflow-event history |
+| `integrations` | Webhooks, adapters, idempotency, and retries |
+| `imports` | CSV validation and import processing |
+| `risk` | Rule-based risk evaluation |
+| `metrics` | KPI calculation and dashboard summaries |
+| `templates.northstar` | Bundled Northstar demonstration configuration |
+
+Modules may share one backend deployment and database while maintaining explicit code boundaries.
+
+---
+
+## Data Architecture
+
+PostgreSQL is the system of record for FlowLens.
+
+The data model is divided into four categories.
+
+### Platform Administration
+
+- Organizations
+- Users
+- Roles
+- User-role assignments
+
+### Workflow Configuration
+
+- Workflow templates
+- Workflow-template versions
+- Stage definitions
+- Field definitions
+- Requirement definitions
+- Approval definitions
+- Rule definitions
+- Metric definitions
+
+### Workflow Runtime
+
+- Work items
+- Field values
+- External references
+- Stage history
+- Assignments
+- Approvals
+- Requirements
+- Exceptions
+- Risk snapshots
+
+### Integration and Audit
+
+- Workflow events
+- Integration events
+- Import jobs
+- Processing attempts
+- Correlation identifiers
+
+Detailed entity definitions are maintained in `docs/data-model.md`.
+
+---
+
+## Organization Model
+
+The initial release is designed for one organization per deployment.
+
+Organization identifiers will still be included in the data model so that:
+
+- Ownership boundaries remain explicit.
+- Data-access rules can be tested.
+- A future multi-organization version remains possible.
+- Demonstration data cannot accidentally mix with another organization’s data.
+
+FlowLens v1.0 will not claim full multi-tenant isolation.
+
+---
+
+## Authentication and Authorization
+
+### Demonstration Mode
+
+Demonstration mode provides predefined synthetic users and roles.
+
+It is intended for:
+
+- Portfolio demonstrations
+- Local evaluation
+- Automated testing
+- Product walkthroughs
+
+Demonstration mode must never be described as production authentication.
+
+### Configured Authentication Mode
+
+The self-hosted release will support application-managed user accounts or another clearly documented authentication approach chosen during implementation.
+
+Passwords, if supported, must be hashed using an established password-hashing library.
+
+### Authorization
+
+Authorization is role-based.
+
+Initial roles include:
+
+- Platform Administrator
+- Workflow Administrator
+- Operations Manager
+- Workflow Contributor
+- Approver
+- Auditor
+- Read-Only Viewer
+
+Authorization checks must occur in the backend even when the frontend hides unauthorized actions.
+
+Restricted decisions and audit details must be returned only to authorized users.
+
+---
+
+## Template Lifecycle
+
+Workflow templates follow a controlled lifecycle.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Draft: Edit configuration
+    Draft --> Published: Validate and publish
+    Published --> Retired: Retire version
+    Published --> Draft: Create new version
+    Retired --> [*]
+```
+
+### Draft
+
+A draft version can be edited and validated.
+
+### Published
+
+A published version can create work items and cannot be changed in place.
+
+### Retired
+
+A retired version cannot create new work items, but its existing records and history remain accessible.
+
+---
+
+## Work-Item Lifecycle
+
+A work item is created from one published workflow-template version.
+
+Its available stages and transition rules come from that version.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active
+    Active --> Active: Complete configured stages
+    Active --> Blocked: Critical exception
+    Blocked --> Active: Resolve exception
+    Active --> Completed: Meet completion rules
+    Active --> Canceled: Authorized cancellation
+    Completed --> [*]
+    Canceled --> [*]
+```
+
+Workflow stages within `Active` are template-defined.
+
+The Northstar template may define stages such as Intake, Validation, Review, Readiness, Approval, and Launch, while another organization may define an entirely different workflow.
+
+---
+
+## Work-Item Creation Flow
+
+A work item can enter FlowLens through manual entry, CSV, REST API, or a webhook adapter.
+
+```mermaid
+flowchart TD
+    I["Intake Request"] --> V["Validate Input"]
+    V --> D{"Duplicate?"}
+    D -->|Yes| R["Return Existing or Reject"]
+    D -->|No| C["Create Work Item"]
+    C --> A["Assign Owner"]
+    A --> E["Record Events"]
+    E --> Q["Evaluate Rules"]
+```
+
+All intake methods use the same application service for final work-item creation.
+
+---
+
+## Integration Processing Flow
+
+```mermaid
+sequenceDiagram
+    participant Source as External Source
+    participant Intake as Webhook Intake
+    participant Store as Event Store
+    participant Worker as Background Worker
+    participant Engine as Workflow Engine
+
+    Source->>Intake: Submit event
+    Intake->>Intake: Authenticate and validate
+    Intake->>Store: Check idempotency key
+    Intake->>Store: Record accepted event
+    Intake-->>Source: Return acceptance result
+    Worker->>Store: Load pending event
+    Worker->>Engine: Submit mapped command
+    Engine->>Store: Update workflow and append events
+    Worker->>Store: Mark event processed
+```
+
+If processing fails after permitted retries, FlowLens creates a visible, assigned exception.
+
+---
+
+## Idempotency Strategy
+
+FlowLens must prevent duplicate external events from creating duplicate workflow actions.
+
+Each integration event includes:
+
+- Source system
+- External event identifier
+- Event type
+- Correlation identifier
+- Received timestamp
+- Payload hash
+- Processing status
+
+The combination of source system and external event identifier must be unique within an organization.
+
+Duplicate submissions return the previously recorded processing result when possible.
+
+---
+
+## Error Handling
+
+Errors are divided into four categories.
+
+| Category | Example | Result |
+|---|---|---|
+| Validation error | Missing required field | Reject request with field-level details |
+| Business-rule error | Transition attempted before approval | Reject command with rule explanation |
+| Recoverable integration error | Temporary service failure | Retry according to policy |
+| Nonrecoverable processing error | Invalid external reference | Create visible exception |
+
+Expected business and validation errors must not be returned as generic internal-server errors.
+
+Application logs may contain technical detail, but user-facing workflow failures must also be visible inside FlowLens when action is required.
+
+---
+
+## Deployment Architecture
+
+The initial self-hosted environment uses Docker Compose.
+
+```mermaid
+flowchart TD
+    B["Browser"] --> WEB["Web Container"]
+    WEB --> API["API Container"]
+    API --> DB["PostgreSQL Container"]
+    API --> REDIS["Redis Container"]
+    REDIS --> WORKER["Worker Container"]
+    WORKER --> DB
+```
+
+### Docker Compose Services
 
 | Service | Responsibility |
 |---|---|
-| Launch Service | Create and manage canonical launches |
-| Workflow Service | Evaluate and perform stage transitions |
-| Assignment Service | Create, assign, reassign, and complete actions |
-| Approval Service | Request and record specialist decisions |
-| Requirement Service | Apply and evaluate workflow requirements |
-| Exception Service | Create, assign, and resolve exceptions |
-| Risk Service | Calculate and explain risk |
-| Audit Service | Append durable workflow events |
-| Integration Service | Validate and track external events |
-| Metrics Service | Calculate documented operational measures |
-| Notification Service | Generate linked simulated notifications |
+| `web` | Serves the React application |
+| `api` | Runs the FastAPI application |
+| `worker` | Runs asynchronous jobs |
+| `postgres` | Stores persistent platform data |
+| `redis` | Provides job transport and temporary cache |
 
-## Rule Layer
+### Persistent Data
 
-Rules are implemented as explicit, testable functions or policy objects.
+PostgreSQL data must use a named Docker volume.
 
-The rule layer determines:
+Stopping containers must not erase application data.
 
-- Stage-entry eligibility
-- Stage-exit eligibility
-- Required approvals
-- Required workflow requirements
-- Default assignments
-- Due dates
-- Risk status
-- Blocking conditions
-- Override permissions
-- Notification triggers
+Destructive data-reset commands must be documented separately and clearly labeled.
 
-Rule results should return:
+### Health Checks
 
-- Pass or fail
-- Stable rule identifier
-- Human-readable explanation
-- Related record identifiers
-- Severity when applicable
+The deployment must provide health checks for:
 
-## Persistence Layer
+- API availability
+- PostgreSQL connectivity
+- Redis connectivity
+- Worker availability when applicable
 
-SQLAlchemy repositories provide structured access to PostgreSQL.
+The API should expose a lightweight health endpoint such as:
 
-Persistence responsibilities include:
+```text
+GET /health
+```
 
-- Database transactions
-- Query construction
-- Entity persistence
-- Foreign-key relationships
-- Unique constraints
-- Optimistic concurrency
-- Pagination
-- Reporting queries
+---
 
-Domain services should not depend directly on HTTP or browser behavior.
+## Installation Experience
 
-## Integration-Adapter Layer
+The intended installation flow is:
 
-Each simulated external system receives an adapter with a common interface.
+```bash
+git clone https://github.com/kay-freeman/flowlens.git
+cd flowlens
+cp .env.example .env
+docker compose up --build
+```
 
-Planned adapters include:
+After startup, the user should be able to:
 
-- Salesforce adapter
-- DocuSign adapter
-- NetSuite adapter
-- Jira adapter
-- Slack notification adapter
+1. Open the documented local URL.
+2. Enter demonstration mode or create an administrator.
+3. Load the Northstar sample template.
+4. Create or import work items.
+5. Move work through configured stages.
+6. Assign owners.
+7. request and record approvals.
+8. Create and resolve exceptions.
+9. Review dashboard measures.
+10. Inspect the audit history.
 
-Adapters translate between external contracts and internal domain actions.
+Database migrations and demonstration-data loading must be automated or clearly documented.
 
-An adapter failure must not silently disappear.
+---
 
-## Background Worker Layer
+## Repository Structure
 
-Celery workers handle:
-
-- Integration-event processing
-- Retryable adapter calls
-- Risk recalculation
-- Overdue-assignment detection
-- Notification dispatch
-- Metric refresh
-- Long-running synthetic demonstration tasks
-
-Workers call the same domain services used by synchronous API routes.
-
-Business rules should not be duplicated inside task definitions.
-
-## Scheduler Layer
-
-The Celery scheduler initiates periodic work such as:
-
-- Overdue-assignment evaluation
-- Approaching-date risk evaluation
-- Pending-approval reminders
-- Metric snapshot generation
-- Stale-integration detection
-
-Scheduled work must remain safe to run more than once.
-
-## Planned Repository Structure
+The planned repository structure is:
 
 ```text
 flowlens/
 ├── .devcontainer/
-│   └── devcontainer.json
 ├── .github/
 │   └── workflows/
-│       └── tests.yml
 ├── apps/
 │   ├── api/
 │   │   ├── alembic/
-│   │   ├── app/
-│   │   │   ├── api/
-│   │   │   ├── core/
-│   │   │   ├── domain/
-│   │   │   ├── integrations/
-│   │   │   ├── models/
-│   │   │   ├── repositories/
-│   │   │   ├── schemas/
-│   │   │   ├── services/
-│   │   │   ├── tasks/
-│   │   │   └── main.py
-│   │   ├── tests/
-│   │   ├── alembic.ini
-│   │   └── pyproject.toml
+│   │   ├── src/
+│   │   │   └── flowlens/
+│   │   │       ├── approvals/
+│   │   │       ├── assignments/
+│   │   │       ├── events/
+│   │   │       ├── exceptions/
+│   │   │       ├── identity/
+│   │   │       ├── imports/
+│   │   │       ├── integrations/
+│   │   │       ├── metrics/
+│   │   │       ├── organizations/
+│   │   │       ├── requirements/
+│   │   │       ├── risk/
+│   │   │       ├── templates/
+│   │   │       ├── work_items/
+│   │   │       └── workflow/
+│   │   └── tests/
 │   └── web/
-│       ├── public/
 │       ├── src/
-│       │   ├── api/
 │       │   ├── components/
 │       │   ├── features/
-│       │   ├── hooks/
-│       │   ├── layouts/
 │       │   ├── pages/
-│       │   ├── routes/
-│       │   ├── styles/
-│       │   └── main.tsx
-│       ├── package.json
-│       └── vite.config.ts
+│       │   └── services/
+│       └── tests/
+├── packages/
+│   └── templates/
+│       └── northstar-contract-to-launch/
 ├── docs/
 ├── infrastructure/
-│   └── docker-compose.yml
-├── scripts/
 ├── .env.example
-├── .gitignore
+├── docker-compose.yml
 ├── LICENSE
 └── README.md
 ```
 
-## Runtime Flow: Launch Creation
+This structure may be refined during implementation, but the separation between platform code and demonstration configuration must remain.
 
-```mermaid
-sequenceDiagram
-    participant SF as Salesforce Simulator
-    participant API as FastAPI
-    participant DB as PostgreSQL
-    participant Q as Redis
-    participant W as Celery Worker
+---
 
-    SF->>API: POST integration event
-    API->>API: Validate envelope
-    API->>DB: Insert integration event
-    API->>Q: Queue processing task
-    API-->>SF: Accepted response
-    Q->>W: Deliver task
-    W->>DB: Check idempotency
-    W->>DB: Create canonical launch
-    W->>DB: Create owner and next action
-    W->>DB: Append workflow events
-    W->>DB: Mark event processed
-```
+## Northstar Demonstration Package
 
-## Runtime Flow: Duplicate Event
+The Northstar scenario will be distributed as a bundled template package.
 
-```mermaid
-sequenceDiagram
-    participant EXT as External Simulator
-    participant API as FastAPI
-    participant DB as PostgreSQL
+It will contain:
 
-    EXT->>API: POST previously received event
-    API->>DB: Find source and event identifier
-    DB-->>API: Existing result
-    API-->>EXT: Existing result with duplicate true
-```
+- Workflow-template configuration
+- Stage definitions
+- Field definitions
+- Approval definitions
+- Requirement definitions
+- Assignment rules
+- Risk rules
+- Metric definitions
+- Synthetic users
+- Synthetic work items
+- Synthetic integration events
+- Demonstration scenarios
 
-No workflow operation is repeated.
+The package must not contain real employer, customer, or proprietary data.
 
-## Runtime Flow: Permanent Integration Failure
+Northstar-specific terms must not be embedded in reusable workflow-engine logic.
 
-```mermaid
-sequenceDiagram
-    participant Q as Redis
-    participant W as Celery Worker
-    participant DB as PostgreSQL
-    participant N as Notification Adapter
-
-    Q->>W: Deliver processing task
-    W->>W: Attempt processing
-    W->>Q: Retry transient failure
-    Q->>W: Deliver final retry
-    W->>W: Processing fails
-    W->>DB: Mark integration failed
-    W->>DB: Create assigned exception
-    W->>DB: Append audit event
-    W->>N: Create linked alert
-```
-
-## Transaction Boundaries
-
-A workflow operation that changes multiple related records should use one database transaction when practical.
-
-For example, a successful launch-creation transaction should include:
-
-- Canonical launch
-- Initial stage history
-- Accountable owner
-- Initial assignment
-- External references
-- Workflow audit events
-- Integration processing result
-
-If the transaction fails, partial workflow state should not remain committed.
-
-## Audit Architecture
-
-Workflow events are append-only application records.
-
-The audit service must:
-
-- Generate unique event identifiers.
-- Preserve UTC occurrence time.
-- Record the actor or source.
-- Preserve correlation identifiers.
-- Store relevant previous and new state.
-- Require reasons for controlled actions.
-- Prevent normal edit and delete operations.
-- Avoid storing credentials or unnecessary sensitive data.
-
-Current state and historical events serve different purposes.
-
-The current state supports operational use. The event history explains how that state was reached.
-
-## Idempotency Architecture
-
-Inbound idempotency is enforced through a database uniqueness constraint on:
-
-```text
-source_system + external_event_id
-```
-
-Outbound actions use stable request identifiers.
-
-Idempotent services should:
-
-1. Check whether the operation already completed.
-2. Return the existing result when appropriate.
-3. Avoid duplicate assignments, approvals, exceptions, notifications, and audit events.
-4. Preserve the original correlation identifier.
-
-## Risk Architecture
-
-Risk status is calculated from explicit rules.
-
-Inputs may include:
-
-- Current stage
-- Target launch date
-- Stage age
-- Pending approvals
-- Overdue assignments
-- Open exceptions
-- Integration failures
-- Remaining required work
-- Customer-requested pause
-
-A risk calculation produces:
-
-- Risk status
-- Triggered rule identifiers
-- Human-readable explanations
-- Related record identifiers
-- Calculation timestamp
-
-Historical risk snapshots support trend analysis.
-
-## Metrics Architecture
-
-The Metrics Service calculates outcomes from canonical timestamps and workflow events.
-
-Metrics must not depend on manually entered summary values when the underlying event data exists.
-
-The service supports:
-
-- Current operational totals
-- Historical trends
-- Target comparison
-- Synthetic before-and-after modeling
-- Reproducible calculations
-- Documented exclusions
-
-## Authentication and Authorization Strategy
-
-The portfolio release will use synthetic demo identities and roles.
-
-The interface may allow selection among clearly labeled demo personas for testing role-specific experiences.
-
-This is not represented as production authentication.
-
-The architecture supports future integration with a real identity provider through:
-
-- Authenticated user context
-- Role assignments
-- Route authorization
-- Service-level permission checks
-- Restricted response fields
-- Audited protected actions
-
-Authorization must be enforced in the backend, not only hidden in the interface.
+---
 
 ## API Design Principles
 
-FlowLens APIs use:
+The API will follow these principles:
 
-- Versioned routes
+- Resource-oriented routes
 - JSON request and response bodies
-- Pydantic validation
+- Consistent error structures
+- Explicit organization scope
+- Documented pagination
+- UTC timestamps in ISO 8601 format
 - Stable identifiers
-- Controlled enumerations
-- ISO 8601 UTC timestamps
-- Pagination for lists
-- Structured error responses
-- Correlation identifiers
+- Idempotency support where duplicate commands are possible
 - OpenAPI documentation
+- Authorization at the endpoint and service layers
 
-Planned route prefix:
+Potential initial resource groups include:
 
 ```text
-/api/v1
+/api/v1/organizations
+/api/v1/users
+/api/v1/workflow-templates
+/api/v1/workflow-template-versions
+/api/v1/work-items
+/api/v1/assignments
+/api/v1/approvals
+/api/v1/exceptions
+/api/v1/events
+/api/v1/imports
+/api/v1/integration-events
+/api/v1/metrics
 ```
 
-## Error Response Format
+Exact endpoint design will be finalized before implementation of each module.
 
-```json
-{
-  "error": {
-    "code": "STAGE_EXIT_BLOCKED",
-    "message": "The launch cannot leave Financial Readiness.",
-    "details": [
-      {
-        "requirement": "FINANCIAL_APPROVAL",
-        "issue": "Required approval is still pending."
-      }
-    ]
-  },
-  "correlation_id": "5c98382c-63af-4928-81a1-81225fc14c87"
-}
-```
+---
 
-## Development Ports
+## Configuration Format
 
-| Service | Port |
-|---|---:|
-| React web application | 5173 |
-| FastAPI application | 8000 |
-| PostgreSQL | 5432 |
-| Redis | 6379 |
+Bundled templates should use a portable, version-controlled configuration format such as YAML or JSON.
 
-Codespaces may expose the web and API ports through forwarded URLs.
+Configuration must be validated before publishing or importing.
 
-## Environment Configuration
+A template package should be able to describe:
 
-Configuration values will be documented in `.env.example`.
+- Template metadata
+- Stages
+- Fields
+- Requirements
+- Approvals
+- Roles
+- Assignment rules
+- Transition rules
+- Risk rules
+- Metric definitions
 
-Expected configuration includes:
+The database remains authoritative after a template is imported.
 
-- Database URL
-- Redis URL
-- API environment
-- Web API base URL
+Configuration files provide portability and version control; they are not read from disk for every runtime decision.
+
+---
+
+## Observability
+
+The initial release will provide structured application logging.
+
+Logs should include:
+
+- Timestamp
 - Log level
-- Retry limits
-- Synthetic-data mode
-- Demo persona mode
+- Service
+- Request or job identifier
+- Correlation identifier when available
+- Organization identifier
+- Work-item identifier when applicable
+- Event type
+- Outcome
 
-Real credentials must never be committed.
+Sensitive values must not be written to logs.
 
-## Container Strategy
+Operational workflow exceptions belong in the application database and user interface, not only in technical logs.
 
-Docker Compose will provide:
+---
 
-- PostgreSQL
-- Redis
-- FastAPI
-- Celery worker
-- Celery scheduler
-- React development server when appropriate
+## Security Controls
 
-The `.devcontainer` configuration will make the environment reproducible in GitHub Codespaces.
+The architecture must support the following minimum controls:
+
+- Server-side authorization
+- Password hashing when local accounts are used
+- Environment-based secret configuration
+- Input validation
+- Restricted audit access
+- Protection against duplicate external events
+- Safe database migrations
+- Dependency scanning through GitHub
+- No secrets committed to the repository
+- No production or proprietary demonstration data
+- Audit events for privileged actions
+- Secure defaults in deployment documentation
+
+Production deployments should place FlowLens behind HTTPS using a reverse proxy or managed hosting environment.
+
+Docker Compose alone does not provide a complete internet-facing security boundary.
+
+---
 
 ## Testing Strategy
 
-### Backend Unit Tests
+### Unit Tests
 
-Verify:
+Unit tests will cover:
 
-- Workflow rules
-- Risk rules
-- Approval behavior
-- Exception behavior
-- Idempotency logic
-- Metric formulas
+- Template validation
+- Transition rules
+- Assignment rules
+- Approval rules
+- Requirement rules
+- Risk evaluation
+- Metric calculations
+- Adapter mappings
+- Idempotency behavior
 
-### Backend Integration Tests
+### API Integration Tests
 
-Verify:
+Integration tests will cover:
 
+- Database persistence
 - API validation
-- PostgreSQL persistence
-- Transaction behavior
-- Integration-event lifecycle
-- Retry outcomes
-- Audit creation
+- Authorization
+- Template publishing
+- Work-item lifecycle
+- Approval decisions
+- Exception handling
+- CSV imports
+- Webhook processing
 
-### Frontend Component Tests
+### Frontend Tests
 
-Verify:
+Frontend tests will cover:
 
-- Status presentation
-- Filters
-- Work queues
-- Approval controls
-- Exception controls
-- Accessibility behavior
+- Form behavior
+- Validation messages
+- Work-item views
+- Dashboard states
+- Approval actions
+- Exception actions
+- Permission-aware controls
 
 ### End-to-End Tests
 
-Verify complete user journeys such as:
+End-to-end tests will cover:
 
-- Create a launch
-- Complete a valid stage
-- Reject an invalid transition
-- Record an approval
-- Resolve an exception
-- Detect a blocked launch
-- Complete operational handoff
-- View dashboard updates
+- Starting with a clean deployment
+- Loading the Northstar template
+- Creating a work item
+- Completing workflow stages
+- Recording an approval
+- Handling an exception
+- Viewing audit history
+- Importing work through CSV
+- Processing a duplicate webhook safely
+- Confirming dashboard updates
+
+---
 
 ## Continuous Integration
 
-GitHub Actions will eventually run:
+GitHub Actions will run automated checks for pull requests and pushes to the main branch.
+
+The workflow should eventually include:
 
 - Backend formatting and linting
-- Backend type checks
-- Backend tests
+- Backend unit and integration tests
 - Frontend formatting and linting
-- Frontend type checks
-- Frontend tests
+- Frontend unit tests
 - Production frontend build
-- Selected end-to-end tests
-- Privacy and secret checks when practical
+- Docker image build validation
+- Database migration validation
+- End-to-end tests when practical
+- Dependency and security checks
 
-## Architecture Decision Summary
+A failed required check must prevent an implementation change from being treated as release-ready.
 
-| Decision | Selected Approach | Reason |
-|---|---|---|
-| Repository model | Monorepo | Keeps application, contracts, infrastructure, and documentation together |
-| Frontend | React and TypeScript | Supports rich operational interfaces |
-| Frontend tooling | Vite | Focused and fast application build environment |
-| Backend | FastAPI and Python | Strong validation, documentation, and testability |
-| Database | PostgreSQL | Relational integrity and event-based reporting |
-| Background processing | Celery and Redis | Retryable and scheduled workflow operations |
-| ORM | SQLAlchemy | Explicit relational persistence |
-| Migrations | Alembic | Version-controlled schema changes |
-| Integration strategy | Simulated adapters | Demonstrates contracts without real credentials |
-| Authentication | Demo personas initially | Enables role testing without misrepresenting production security |
-| Audit model | Append-only events | Preserves decision and workflow history |
-| Deployment | Containerized development first | Reproducibility before production claims |
+---
 
-## Known Architectural Risks
+## Scalability Approach
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Project scope becomes too large | Delivery slows or becomes incomplete | Build vertical workflow slices and prioritize Must requirements |
-| Workflow rules become scattered | Behavior becomes difficult to explain | Centralize rules and stable rule identifiers |
-| Frontend duplicates backend decisions | Inconsistent behavior | Keep authorization and business rules in API services |
-| Background tasks create partial state | Workflow inconsistency | Use transactions and idempotent service operations |
-| Redis is treated as authoritative | Data loss or inconsistency | Keep PostgreSQL as system of record |
-| Demo authentication is misunderstood | Security capability is overstated | Label demo personas and document production limitations |
-| Metrics become manually curated | Results are not reproducible | Calculate measures from events |
-| Simulated integrations feel superficial | Portfolio value is reduced | Implement full validation, lifecycle, retry, and failure behavior |
+The initial architecture prioritizes clarity and dependable operation over premature scale.
 
-## Delivery Strategy
+Early scaling options include:
 
-FlowLens will be built through vertical slices.
+- Increasing API workers
+- Increasing background workers
+- Moving dashboard calculations to asynchronous jobs
+- Adding appropriate database indexes
+- Caching expensive read models
+- Separating integration processing if volume requires it
 
-Each slice should include:
+FlowLens v1.0 will not claim high-availability, global-scale, or multi-region operation.
 
-1. Relevant data model
-2. API behavior
-3. Business rules
-4. Audit events
-5. Interface behavior
-6. Automated tests
-7. Documentation updates
+---
 
-The first vertical slice will create and display a canonical launch from a valid synthetic Salesforce event.
+## Availability and Recovery
 
-## Architecture References
+The self-hosted documentation must explain:
 
-- [React Documentation](https://react.dev/)
-- [Vite Documentation](https://vite.dev/guide/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Celery Documentation](https://docs.celeryq.dev/)
-- [Redis Documentation](https://redis.io/docs/latest/)
-- [Docker Documentation](https://docs.docker.com/)
+- How persistent data is stored
+- How to back up PostgreSQL
+- How to restore PostgreSQL
+- How to restart services
+- How to apply migrations
+- How to inspect service health
 
-## Architecture Conclusion
+The initial release may provide documented manual backup and restore procedures rather than an automated disaster-recovery system.
 
-The FlowLens architecture combines an interactive systems-transformation interface with a testable workflow and integration backend.
+---
 
-It is intentionally structured to demonstrate analysis, architecture, application development, integration reliability, operational visibility, testing, and measurable delivery without depending on proprietary systems or production data.
+## Key Architectural Decisions
+
+| Decision | Rationale |
+|---|---|
+| Modular monolith | Provides clear boundaries without unnecessary distributed-system complexity |
+| PostgreSQL system of record | Supports relational integrity, transactions, and reporting |
+| Published template versions are immutable | Protects historical workflow interpretation |
+| Workflow events are append-only | Preserves auditability |
+| Northstar is configuration | Keeps the platform reusable |
+| Shared command path for all intake methods | Prevents inconsistent business behavior |
+| Background jobs are idempotent | Makes retry processing safer |
+| Docker Compose is the initial deployment target | Provides a practical self-hosting experience |
+| Single organization per deployment | Reduces early complexity while preserving clear ownership boundaries |
+| Specific integrations begin as adapters or simulations | Avoids overstating production integration readiness |
+
+---
+
+## Known Initial Limitations
+
+The initial release may not include:
+
+- Full multi-tenant SaaS isolation
+- Enterprise single sign-on
+- Production-certified Salesforce, DocuSign, Jira, Slack, or NetSuite connectors
+- High-availability deployment automation
+- Multi-region operation
+- A visual drag-and-drop workflow designer
+- Arbitrary user-authored executable scripts
+- Automated workflow migration between published versions
+- Advanced forecasting or machine-learning risk models
+- Mobile applications
+
+These limitations do not prevent FlowLens from being a usable, configurable, self-hosted workflow platform.
+
+They define honest boundaries for the first release.
+
+---
+
+## Architecture Success Criteria
+
+The architecture will be considered successfully implemented when:
+
+- A new user can start FlowLens using documented Docker Compose instructions.
+- Application data persists across container restarts.
+- A workflow administrator can import or configure a workflow template.
+- A published template version can create work items.
+- Manual, CSV, API, and generic webhook intake use the same business rules.
+- Work items can move through configurable stages.
+- Required approvals and requirements block invalid transitions.
+- Every active work item can have an accountable owner and next action.
+- Exceptions are visible, assigned, and measurable.
+- Duplicate integration events do not create duplicate workflow actions.
+- Failed integration events create visible exceptions.
+- Workflow history is auditable.
+- Dashboard measures are calculated from stored records and events.
+- The Northstar scenario operates as a bundled demonstration template.
+- Automated tests verify critical rules and guardrails.
+- The repository contains no real customer, employer, or proprietary data.
