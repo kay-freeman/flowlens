@@ -1,6 +1,6 @@
 # FlowLens
 
-**Status: Discovery and Current-State Analysis**
+**Status: Requirements and Future-State Design**
 
 FlowLens is a business systems transformation platform designed to map fragmented workflows, identify operational friction, preserve the systems and practices that already work, and model a measurable future state.
 
@@ -100,7 +100,7 @@ FlowLens is guided by the following principles:
 
 ## Current-State Findings
 
-The initial analysis identified several root-cause themes:
+The discovery analysis identified several root-cause themes.
 
 ### Fragmented Workflow State
 
@@ -143,15 +143,21 @@ All figures are synthetic. They do not represent an actual company, employer, cu
 
 ## Documentation
 
-The repository currently includes the following systems-analysis artifacts:
+The repository includes the following systems-analysis artifacts:
 
 - [Business Case](docs/business-case.md)  
-  Defines the fictional organization, business problem, project scope, transformation opportunity, and target outcomes.
+  Defines the fictional organization, business problem, transformation opportunity, project scope, and target outcomes.
 
 - [Current-State Analysis](docs/current-state.md)  
   Maps the existing systems, workflow, data movement, manual touchpoints, pain points, root causes, constraints, and capabilities that must be preserved.
 
-Additional stakeholder, requirements, architecture, data-model, testing, and rollout documentation will be added as the project progresses.
+- [Stakeholder Analysis](docs/stakeholders.md)  
+  Defines stakeholder responsibilities, goals, information needs, decision authority, conflicts, discovery questions, and adoption risks.
+
+- [Success Measures](docs/success-measures.md)  
+  Defines KPI formulas, future-state targets, guardrails, required workflow events, dashboard measures, and release success criteria.
+
+Requirements, future-state architecture, data-model, testing, UAT, and rollout documentation will be added as the project progresses.
 
 ## Project Roadmap
 
@@ -163,8 +169,8 @@ Additional stakeholder, requirements, architecture, data-model, testing, and rol
 - [x] Analyze current data movement
 - [x] Create the pain-point register
 - [x] Identify root-cause themes
-- [ ] Define stakeholder needs and responsibilities
-- [ ] Establish detailed success measures
+- [x] Define stakeholder needs and responsibilities
+- [x] Establish detailed success measures
 
 ### Phase 2: Requirements and Future State
 
@@ -207,7 +213,9 @@ Additional stakeholder, requirements, architecture, data-model, testing, and rol
 flowlens/
 ├── docs/
 │   ├── business-case.md
-│   └── current-state.md
+│   ├── current-state.md
+│   ├── stakeholders.md
+│   └── success-measures.md
 ├── LICENSE
 └── README.md
 ```
