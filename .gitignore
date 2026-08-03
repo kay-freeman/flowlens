@@ -1,0 +1,48 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Python build output
+build/
+dist/
+
+# Node dependencies and build output
+node_modules/
+apps/web/dist/
+apps/web/coverage/
+
+# Logs and runtime files
+*.log
+*.pid
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor files
+.vscode/
+.idea/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
