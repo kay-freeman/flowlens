@@ -6,7 +6,7 @@ FlowLens is an open-source, self-hosted workflow-transformation platform designe
 
 Instead of replacing every existing business system, FlowLens acts as a coordination and intelligence layer across them. It centralizes workflow ownership, requirements, approvals, exceptions, integrations, audit history, and operational measurements.
 
-> **Current status:** Product definition and system design are complete. Application implementation is beginning. The repository currently contains the business analysis, requirements, architecture, integration contracts, and implementation roadmap that will guide development.
+> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, and automated backend tests. The current interface uses synthetic demonstration data while database-backed workflow features are implemented.
 
 ---
 
@@ -330,27 +330,27 @@ This separation prevents FlowLens from becoming a one-company or one-workflow ap
 
 ---
 
-## Planned Technology Stack
+## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React, TypeScript, and Vite |
-| Client routing | React Router |
-| Server-state management | TanStack Query |
-| Dashboard visualization | Recharts |
-| Backend API | FastAPI and Python |
-| Request validation | Pydantic |
-| Database | PostgreSQL |
-| Persistence | SQLAlchemy |
-| Database migrations | Alembic |
-| Background processing | Celery |
-| Queue and cache | Redis |
-| Backend testing | Pytest |
-| Frontend testing | Vitest and Testing Library |
-| End-to-end testing | Playwright |
-| Local deployment | Docker Compose |
-| Continuous integration | GitHub Actions |
-| API documentation | OpenAPI |
+| Layer | Technology | Status |
+|---|---|---|
+| Frontend | React, TypeScript, and Vite | Implemented |
+| Client routing | React Router | Implemented |
+| Server-state management | TanStack Query | Planned |
+| Dashboard visualization | Recharts | Planned |
+| Backend API | FastAPI and Python | Implemented |
+| Request validation | Pydantic | Implemented |
+| Database | PostgreSQL | Implemented |
+| Persistence | SQLAlchemy | Implemented |
+| Database migrations | Alembic | Implemented |
+| Background processing | Celery | Planned |
+| Queue and cache | Redis | Planned |
+| Backend testing | Pytest | Implemented |
+| Frontend testing | Vitest and Testing Library | Planned |
+| End-to-end testing | Playwright | Planned |
+| Local services | Docker Compose | PostgreSQL implemented |
+| Continuous integration | GitHub Actions | Planned |
+| API documentation | OpenAPI through FastAPI | Implemented |
 
 The initial application will use a modular-monolith architecture. This provides strong domain boundaries without introducing unnecessary distributed-system complexity.
 
@@ -371,7 +371,9 @@ flowchart TD
     WK --> DB
 ```
 
-FlowLens will be deployable using Docker Compose with:
+The current implementation includes the React application, FastAPI service, and PostgreSQL database. Redis and the background worker remain part of the planned architecture.
+
+The complete local environment will eventually be deployable using Docker Compose with:
 
 - Web application
 - API application
@@ -428,20 +430,102 @@ The complete model is documented in [`docs/data-model.md`](docs/data-model.md).
 
 ---
 
-## Planned Installation Experience
+## Run the Current Application Foundation
 
-When the usable application scaffold is complete, the intended local installation will be:
+### Prerequisites
+
+- Git
+- Docker with Docker Compose
+- Python 3.12 or later
+- Node.js 24 or later
+- npm
+
+### 1. Clone and configure FlowLens
 
 ```bash
 git clone https://github.com/kay-freeman/flowlens.git
 cd flowlens
 cp .env.example .env
-docker compose up --build
 ```
 
-The user will then be able to open FlowLens in a browser, load the Northstar demonstration template, and interact with persistent workflow data.
+The included environment file contains development-only values. Do not use these credentials for a public or production deployment.
 
-These commands are the target installation experience. They will not work until the application and deployment files are implemented.
+### 2. Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+docker compose ps
+```
+
+The PostgreSQL service should report a healthy status before migrations are applied.
+
+### 3. Install and prepare the API
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e "apps/api[dev]"
+
+cd apps/api
+alembic upgrade head
+cd ../..
+```
+
+### 4. Run the API
+
+```bash
+uvicorn flowlens.main:app \
+  --app-dir apps/api/src \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --reload
+```
+
+The current API provides:
+
+- `GET /health` for API process health
+- `GET /ready` for API and PostgreSQL readiness
+- `/docs` for interactive OpenAPI documentation
+
+### 5. Run the frontend
+
+In a second terminal:
+
+```bash
+cd flowlens/apps/web
+npm install
+npm run dev -- --host 0.0.0.0
+```
+
+Vite will display the browser address for the frontend, typically using port `5173`.
+
+### 6. Run the current checks
+
+Backend:
+
+```bash
+cd flowlens
+source .venv/bin/activate
+pytest apps/api/tests -v
+```
+
+Frontend:
+
+```bash
+cd flowlens/apps/web
+npm run lint
+npm run build
+```
+
+Database schema consistency:
+
+```bash
+cd flowlens/apps/api
+source ../../.venv/bin/activate
+alembic check
+```
+
+The frontend is currently an interactive synthetic demonstration. The organization schema is persisted in PostgreSQL, but the frontend is not yet connected to database-backed workflow records.
 
 ---
 
@@ -475,6 +559,25 @@ The initial release must allow someone to:
 
 ## Current Project Status
 
+### Working Today
+
+- Interactive React and TypeScript demonstration interface
+- Navigable routes for work items, approvals, exceptions, integrations, audit history, templates, people, and settings
+- Synthetic Northstar dashboard and workflow records
+- FastAPI application with generated OpenAPI documentation
+- API health and PostgreSQL readiness endpoints
+- Dockerized PostgreSQL with persistent local storage
+- Environment-based application configuration
+- SQLAlchemy database sessions and declarative models
+- Alembic migration history
+- Persisted organization table with a unique organization slug
+- Backend tests for health, readiness, and database-unavailable behavior
+- Passing frontend lint and production build checks
+
+### Current Limitation
+
+The frontend experience is functional and navigable, but its demonstration records are still stored as synthetic frontend data. The next implementation milestone connects API endpoints and PostgreSQL persistence to the interface, beginning with organization management.
+
 ### Phase 1: Business Analysis and Product Definition
 
 - [x] Define the transformation case
@@ -503,20 +606,22 @@ The initial release must allow someone to:
 
 ### Phase 3: Application Foundation
 
-- [ ] Create the monorepo structure
-- [ ] Scaffold the FastAPI backend
-- [ ] Scaffold the React frontend
-- [ ] Configure PostgreSQL
-- [ ] Configure SQLAlchemy and Alembic
+- [x] Create the monorepo structure
+- [x] Scaffold the FastAPI backend
+- [x] Scaffold the React frontend
+- [x] Configure PostgreSQL
+- [x] Configure SQLAlchemy and Alembic
 - [ ] Configure Redis and Celery
-- [ ] Create Docker Compose services
-- [ ] Add health checks
-- [ ] Add environment configuration
+- [x] Create the PostgreSQL Docker Compose service
+- [ ] Add remaining application services to Docker Compose
+- [x] Add API and database health checks
+- [x] Add environment configuration
 - [ ] Establish automated test workflows
 
 ### Phase 4: Configurable Workflow Engine
 
-- [ ] Implement organizations, users, and roles
+- [ ] Implement organization API operations
+- [ ] Implement users and roles
 - [ ] Implement workflow templates
 - [ ] Implement template versioning
 - [ ] Implement stage and field definitions
@@ -594,7 +699,7 @@ The initial release must allow someone to:
 - [Data Model](docs/data-model.md)
 - [Integration Contracts](docs/integration-contracts.md)
 
-Additional implementation, testing, deployment, administration, and user documentation will be added as the product develops.
+The repository also includes working application source under `apps/api` and `apps/web`, an Alembic migration history, Docker Compose configuration, and automated backend tests. Additional implementation, testing, deployment, administration, and user documentation will be added as the product develops.
 
 ---
 
