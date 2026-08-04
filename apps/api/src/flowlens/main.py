@@ -1,5 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
+
+from flowlens.config import get_settings
+from flowlens.database import check_database_connection
+
+
+settings = get_settings()
 
 
 class HealthResponse(BaseModel):
@@ -8,13 +15,19 @@ class HealthResponse(BaseModel):
     version: str
 
 
+class ReadinessResponse(BaseModel):
+    name: str
+    status: str
+    database: str
+
+
 app = FastAPI(
-    title="FlowLens API",
+    title=settings.app_name,
     description=(
-        "The API and workflow engine for the FlowLens "
-        "workflow-transformation platform."
+        "The API and workflow engine for the "
+        "FlowLens workflow-transformation platform."
     ),
-    version="0.1.0",
+    version=settings.app_version,
 )
 
 
@@ -26,7 +39,29 @@ app = FastAPI(
 )
 def health_check() -> HealthResponse:
     return HealthResponse(
-        name="FlowLens API",
+        name=settings.app_name,
         status="healthy",
-        version=app.version,
+        version=settings.app_version,
+    )
+
+
+@app.get(
+    "/ready",
+    response_model=ReadinessResponse,
+    tags=["System"],
+    summary="Check API readiness",
+)
+def readiness_check() -> ReadinessResponse:
+    try:
+        check_database_connection()
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection unavailable.",
+        ) from exc
+
+    return ReadinessResponse(
+        name=settings.app_name,
+        status="ready",
+        database="connected",
     )
