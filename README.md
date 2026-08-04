@@ -349,7 +349,7 @@ This separation prevents FlowLens from becoming a one-company or one-workflow ap
 | Frontend testing | Vitest and Testing Library | Planned |
 | End-to-end testing | Playwright | Planned |
 | Local services | Docker Compose | PostgreSQL implemented |
-| Continuous integration | GitHub Actions | Planned |
+| Continuous integration | GitHub Actions | Implemented |
 | API documentation | OpenAPI through FastAPI | Implemented |
 
 The initial application will use a modular-monolith architecture. This provides strong domain boundaries without introducing unnecessary distributed-system complexity.
@@ -573,6 +573,7 @@ The initial release must allow someone to:
 - Persisted organization table with a unique organization slug
 - Backend tests for health, readiness, and database-unavailable behavior
 - Passing frontend lint and production build checks
+- GitHub Actions automation for backend migrations, backend tests, frontend lint, and frontend builds
 
 ### Current Limitation
 
@@ -616,7 +617,7 @@ The frontend experience is functional and navigable, but its demonstration recor
 - [ ] Add remaining application services to Docker Compose
 - [x] Add API and database health checks
 - [x] Add environment configuration
-- [ ] Establish automated test workflows
+- [x] Establish automated test workflows
 
 ### Phase 4: Configurable Workflow Engine
 
