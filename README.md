@@ -6,7 +6,7 @@ FlowLens is an open-source, self-hosted workflow-transformation platform designe
 
 Instead of replacing every existing business system, FlowLens acts as a coordination and intelligence layer across them. It centralizes workflow ownership, requirements, approvals, exceptions, integrations, audit history, and operational measurements.
 
-> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, and automated backend tests. The current interface uses synthetic demonstration data while database-backed workflow features are implemented.
+> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization operations. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
 
 ---
 
@@ -349,7 +349,7 @@ This separation prevents FlowLens from becoming a one-company or one-workflow ap
 | Frontend testing | Vitest and Testing Library | Planned |
 | End-to-end testing | Playwright | Planned |
 | Local services | Docker Compose | PostgreSQL implemented |
-| Continuous integration | GitHub Actions | Planned |
+| Continuous integration | GitHub Actions | Implemented |
 | API documentation | OpenAPI through FastAPI | Implemented |
 
 The initial application will use a modular-monolith architecture. This provides strong domain boundaries without introducing unnecessary distributed-system complexity.
@@ -485,7 +485,12 @@ The current API provides:
 
 - `GET /health` for API process health
 - `GET /ready` for API and PostgreSQL readiness
+- `POST /organizations` to create an organization
+- `GET /organizations` to list organizations
+- `GET /organizations/{organization_id}` to retrieve an organization
 - `/docs` for interactive OpenAPI documentation
+
+Organization records are validated with Pydantic, persisted in PostgreSQL through SQLAlchemy, and protected by a unique slug constraint. The API returns clear `404` and `409` responses for missing organizations and duplicate slugs.
 
 ### 5. Run the frontend
 
@@ -525,7 +530,7 @@ source ../../.venv/bin/activate
 alembic check
 ```
 
-The frontend is currently an interactive synthetic demonstration. The organization schema is persisted in PostgreSQL, but the frontend is not yet connected to database-backed workflow records.
+The frontend is currently an interactive synthetic demonstration. Organization records can now be created and retrieved through the database-backed API, but the frontend is not yet connected to those persistent records.
 
 ---
 
@@ -571,12 +576,15 @@ The initial release must allow someone to:
 - SQLAlchemy database sessions and declarative models
 - Alembic migration history
 - Persisted organization table with a unique organization slug
-- Backend tests for health, readiness, and database-unavailable behavior
+- Database-backed organization API operations for creating, listing, and retrieving organizations
+- Duplicate-slug conflict handling and missing-organization responses
+- Fifteen backend tests covering system health, database readiness, organization validation, and organization API behavior
 - Passing frontend lint and production build checks
+- GitHub Actions automation for backend migrations, backend tests, frontend lint, and frontend builds
 
 ### Current Limitation
 
-The frontend experience is functional and navigable, but its demonstration records are still stored as synthetic frontend data. The next implementation milestone connects API endpoints and PostgreSQL persistence to the interface, beginning with organization management.
+The organization domain is now backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Users, roles, workflow templates, and runtime workflow records remain future implementation milestones.
 
 ### Phase 1: Business Analysis and Product Definition
 
@@ -620,7 +628,7 @@ The frontend experience is functional and navigable, but its demonstration recor
 
 ### Phase 4: Configurable Workflow Engine
 
-- [ ] Implement organization API operations
+- [x] Implement organization API operations
 - [ ] Implement users and roles
 - [ ] Implement workflow templates
 - [ ] Implement template versioning
@@ -819,4 +827,11 @@ FlowLens is available under the [MIT License](LICENSE).
 
 ## Author
 
-Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio project focused on systems analysis, business-systems transformation, workflow design, integration architecture, and operational improvement.
+Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio project focused on systems analysis, business-systems transformation, workflow design, integration architecture, and operational improvement.cd /workspaces/flowlens
+
+grep -n \
+  "Continuous integration\|POST /organizations\|Fifteen backend tests\|Establish automated test workflows\|Implement organization API operations" \
+  README.md
+
+git diff --check
+git status --short
