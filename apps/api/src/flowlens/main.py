@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from flowlens.config import get_settings
 from flowlens.database import check_database_connection
+from flowlens.routers.organizations import router as organizations_router
 
 
 settings = get_settings()
@@ -29,6 +30,8 @@ app = FastAPI(
     ),
     version=settings.app_version,
 )
+
+app.include_router(organizations_router)
 
 
 @app.get(
