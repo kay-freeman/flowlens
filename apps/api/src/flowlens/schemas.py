@@ -1,7 +1,19 @@
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+)
+
+
+class IdentitySource(StrEnum):
+    DEMO = "demo"
+    LOCAL = "local"
+    EXTERNAL = "external"
 
 
 class OrganizationCreate(BaseModel):
@@ -27,3 +39,156 @@ class OrganizationResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+
+class UserCreate(BaseModel):
+    email: str = Field(
+        min_length=3,
+        max_length=320,
+        pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+        examples=["maya.chen@northstar.example"],
+    )
+    display_name: str = Field(
+        min_length=1,
+        max_length=200,
+        examples=["Maya Chen"],
+    )
+    department: str | None = Field(
+        default=None,
+        max_length=200,
+        examples=["Operations"],
+    )
+    identity_source: IdentitySource = IdentitySource.DEMO
+    external_subject: str | None = Field(
+        default=None,
+        max_length=255,
+    )
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+    @field_validator("display_name", mode="before")
+    @classmethod
+    def normalize_display_name(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+    @field_validator("department", mode="before")
+    @classmethod
+    def normalize_department(cls, value: object) -> object:
+        if isinstance(value, str):
+            normalized_value = value.strip()
+
+            return normalized_value or None
+
+        return value
+
+
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    organization_id: UUID
+    email: str
+    display_name: str
+    department: str | None
+    identity_source: IdentitySource
+    external_subject: str | None
+    active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class RoleCreate(BaseModel):
+    code: str = Field(
+        min_length=1,
+        max_length=100,
+        pattern=r"^[a-z][a-z0-9_]*$",
+        examples=["operations_manager"],
+    )
+    name: str = Field(
+        min_length=1,
+        max_length=200,
+        examples=["Operations Manager"],
+    )
+    description: str = Field(
+        min_length=1,
+        max_length=1000,
+        examples=[
+            "Manages operational workflow assignments and exceptions."
+        ],
+    )
+    permissions: list[str] = Field(
+        default_factory=list,
+        examples=[
+            [
+                "work_items:read",
+                "work_items:update",
+                "exceptions:manage",
+            ]
+        ],
+    )
+
+    @field_validator("code", mode="before")
+    @classmethod
+    def normalize_code(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+    @field_validator("name", "description", mode="before")
+    @classmethod
+    def normalize_required_text(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+    @field_validator("permissions")
+    @classmethod
+    def normalize_permissions(
+        cls,
+        permissions: list[str],
+    ) -> list[str]:
+        normalized_permissions = {
+            permission.strip().lower()
+            for permission in permissions
+            if permission.strip()
+        }
+
+        return sorted(normalized_permissions)
+
+
+class RoleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    organization_id: UUID
+    code: str
+    name: str
+    description: str
+    permissions: list[str]
+    active: bool
+
+
+class UserRoleCreate(BaseModel):
+    role_id: UUID
+    assigned_by_user_id: UUID | None = None
+
+
+class UserRoleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UUID
+    role_id: UUID
+    assigned_at: datetime
+    assigned_by_user_id: UUID | None
