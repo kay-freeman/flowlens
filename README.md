@@ -616,7 +616,7 @@ The frontend experience is functional and navigable, but its demonstration recor
 - [ ] Add remaining application services to Docker Compose
 - [x] Add API and database health checks
 - [x] Add environment configuration
-- [ ] Establish automated test workflows
+- [x] Establish automated test workflows
 
 ### Phase 4: Configurable Workflow Engine
 
