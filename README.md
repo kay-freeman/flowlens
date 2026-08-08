@@ -6,7 +6,7 @@ FlowLens is an open-source, self-hosted workflow-transformation platform designe
 
 Instead of replacing every existing business system, FlowLens acts as a coordination and intelligence layer across them. It centralizes workflow ownership, requirements, approvals, exceptions, integrations, audit history, and operational measurements.
 
-> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization operations. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
+> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization, user, role, and role-assignment operations. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
 
 ---
 
@@ -488,9 +488,17 @@ The current API provides:
 - `POST /organizations` to create an organization
 - `GET /organizations` to list organizations
 - `GET /organizations/{organization_id}` to retrieve an organization
+- `POST /organizations/{organization_id}/users` to create a user
+- `GET /organizations/{organization_id}/users` to list users
+- `GET /organizations/{organization_id}/users/{user_id}` to retrieve a user
+- `POST /organizations/{organization_id}/roles` to create a role
+- `GET /organizations/{organization_id}/roles` to list roles
+- `GET /organizations/{organization_id}/roles/{role_id}` to retrieve a role
+- `POST /organizations/{organization_id}/users/{user_id}/roles` to assign a role to a user
+- `GET /organizations/{organization_id}/users/{user_id}/roles` to list a user's role assignments
 - `/docs` for interactive OpenAPI documentation
 
-Organization records are validated with Pydantic, persisted in PostgreSQL through SQLAlchemy, and protected by a unique slug constraint. The API returns clear `404` and `409` responses for missing organizations and duplicate slugs.
+Organization, user, role, and role-assignment records are validated with Pydantic and persisted in PostgreSQL through SQLAlchemy. Database constraints enforce organization-unique user emails, organization-unique role codes, and unique user-role assignments. The API returns clear `404` and `409` responses for missing records and conflicts.
 
 ### 5. Run the frontend
 
@@ -530,7 +538,7 @@ source ../../.venv/bin/activate
 alembic check
 ```
 
-The frontend is currently an interactive synthetic demonstration. Organization records can now be created and retrieved through the database-backed API, but the frontend is not yet connected to those persistent records.
+The frontend is currently an interactive synthetic demonstration. Organizations, users, roles, and role assignments can now be managed through the database-backed API, but the frontend is not yet connected to those persistent records.
 
 ---
 
@@ -578,13 +586,18 @@ The initial release must allow someone to:
 - Persisted organization table with a unique organization slug
 - Database-backed organization API operations for creating, listing, and retrieving organizations
 - Duplicate-slug conflict handling and missing-organization responses
-- Fifteen backend tests covering system health, database readiness, organization validation, and organization API behavior
+- Persisted users and roles with organization-scoped uniqueness constraints
+- Database-backed user API operations for creating, listing, and retrieving users
+- Database-backed role API operations for creating, listing, and retrieving roles
+- Persistent user-role assignments with duplicate and cross-organization protection
+- Pydantic contracts that normalize and validate user, role, and assignment input
+- Forty-one backend tests covering system health, database readiness, validation contracts, persistence, API operations, conflicts, missing records, and organization boundaries
 - Passing frontend lint and production build checks
 - GitHub Actions automation for backend migrations, backend tests, frontend lint, and frontend builds
 
 ### Current Limitation
 
-The organization domain is now backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Users, roles, workflow templates, and runtime workflow records remain future implementation milestones.
+The organization, user, role, and role-assignment domains are now backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Authentication, authorization enforcement, workflow templates, and runtime workflow records remain future implementation milestones.
 
 ### Phase 1: Business Analysis and Product Definition
 
@@ -629,7 +642,7 @@ The organization domain is now backed by working API endpoints and PostgreSQL pe
 ### Phase 4: Configurable Workflow Engine
 
 - [x] Implement organization API operations
-- [ ] Implement users and roles
+- [x] Implement users and roles
 - [ ] Implement workflow templates
 - [ ] Implement template versioning
 - [ ] Implement stage and field definitions
@@ -827,11 +840,4 @@ FlowLens is available under the [MIT License](LICENSE).
 
 ## Author
 
-Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio project focused on systems analysis, business-systems transformation, workflow design, integration architecture, and operational improvement.cd /workspaces/flowlens
-
-grep -n \
-  "Continuous integration\|POST /organizations\|Fifteen backend tests\|Establish automated test workflows\|Implement organization API operations" \
-  README.md
-
-git diff --check
-git status --short
+Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio project focused on systems analysis, business-systems transformation, workflow design, integration architecture, and operational improvement.
