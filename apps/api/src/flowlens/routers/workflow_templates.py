@@ -1,7 +1,9 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import (
     APIRouter,
+    Body,
     Depends,
     HTTPException,
     status,
@@ -17,6 +19,7 @@ from flowlens.schemas import (
     WorkflowTemplateVersionResponse,
 )
 from flowlens.services.organizations import get_organization
+from flowlens.services.users import get_user
 from flowlens.services.workflow_templates import (
     create_workflow_template,
     create_workflow_template_version,
@@ -25,6 +28,7 @@ from flowlens.services.workflow_templates import (
     get_workflow_template_version,
     list_workflow_template_versions,
     list_workflow_templates,
+    publish_workflow_template_version,
 )
 
 
@@ -284,4 +288,73 @@ def get_workflow_template_version_endpoint(
 
     return WorkflowTemplateVersionResponse.model_validate(
         workflow_template_version
+    )
+
+
+@router.post(
+    "/{workflow_template_id}/versions/"
+    "{workflow_template_version_id}/publish",
+    response_model=WorkflowTemplateVersionResponse,
+    summary="Publish a workflow template version",
+)
+def publish_workflow_template_version_endpoint(
+    organization_id: UUID,
+    workflow_template_id: UUID,
+    workflow_template_version_id: UUID,
+    published_by_user_id: Annotated[
+        UUID,
+        Body(embed=True),
+    ],
+    session: Session = Depends(get_database_session),
+) -> WorkflowTemplateVersionResponse:
+    workflow_template = require_workflow_template(
+        session,
+        organization_id,
+        workflow_template_id,
+    )
+
+    workflow_template_version = (
+        get_workflow_template_version(
+            session,
+            workflow_template_id,
+            workflow_template_version_id,
+        )
+    )
+
+    if workflow_template_version is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workflow template version not found.",
+        )
+
+    if workflow_template_version.status != "draft":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Only draft workflow template versions "
+                "can be published."
+            ),
+        )
+
+    publishing_user = get_user(
+        session,
+        organization_id,
+        published_by_user_id,
+    )
+
+    if publishing_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Publishing user not found.",
+        )
+
+    published_version = publish_workflow_template_version(
+        session,
+        workflow_template,
+        workflow_template_version,
+        published_by_user_id,
+    )
+
+    return WorkflowTemplateVersionResponse.model_validate(
+        published_version
     )

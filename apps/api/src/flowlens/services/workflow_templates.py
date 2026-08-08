@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -151,3 +152,38 @@ def get_workflow_template_version(
     )
 
     return session.scalar(statement)
+
+
+def publish_workflow_template_version(
+    session: Session,
+    workflow_template: WorkflowTemplate,
+    workflow_template_version: WorkflowTemplateVersion,
+    published_by_user_id: UUID,
+) -> WorkflowTemplateVersion:
+    published_versions_statement = select(
+        WorkflowTemplateVersion
+    ).where(
+        WorkflowTemplateVersion.workflow_template_id
+        == workflow_template.id,
+        WorkflowTemplateVersion.status == "published",
+    )
+
+    published_versions = session.scalars(
+        published_versions_statement
+    ).all()
+
+    for published_version in published_versions:
+        published_version.status = "retired"
+
+    workflow_template_version.status = "published"
+    workflow_template_version.published_at = datetime.now(UTC)
+    workflow_template_version.published_by_user_id = (
+        published_by_user_id
+    )
+
+    workflow_template.status = "active"
+
+    session.commit()
+    session.refresh(workflow_template_version)
+
+    return workflow_template_version
