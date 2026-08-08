@@ -6,6 +6,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Integer,
     String,
     Text,
     UniqueConstraint,
@@ -202,4 +203,119 @@ class UserRole(Base):
             ondelete="SET NULL",
         ),
         nullable=True,
+    )
+
+
+class WorkflowTemplate(Base):
+    __tablename__ = "workflow_templates"
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "slug",
+            name="uq_workflow_templates_organization_slug",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+    organization_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "organizations.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+    slug: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    name: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False,
+    )
+    work_item_label: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    work_item_label_plural: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    description: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="draft",
+        server_default="draft",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
+class WorkflowTemplateVersion(Base):
+    __tablename__ = "workflow_template_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "workflow_template_id",
+            "version_number",
+            name="uq_workflow_template_versions_template_number",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+    workflow_template_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "workflow_templates.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+    version_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="draft",
+        server_default="draft",
+    )
+    change_summary: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    published_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    published_by_user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
