@@ -22,6 +22,12 @@ class TemplateStatus(StrEnum):
     ARCHIVED = "archived"
 
 
+class VersionStatus(StrEnum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    RETIRED = "retired"
+
+
 class OrganizationCreate(BaseModel):
     name: str = Field(
         min_length=1,
@@ -266,3 +272,34 @@ class WorkflowTemplateResponse(BaseModel):
     status: TemplateStatus
     created_at: datetime
     updated_at: datetime
+
+
+class WorkflowTemplateVersionCreate(BaseModel):
+    change_summary: str = Field(
+        min_length=1,
+        max_length=2000,
+        examples=[
+            "Initial contract-to-launch workflow configuration."
+        ],
+    )
+
+    @field_validator("change_summary", mode="before")
+    @classmethod
+    def normalize_change_summary(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+
+class WorkflowTemplateVersionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    workflow_template_id: UUID
+    version_number: int = Field(ge=1)
+    status: VersionStatus
+    change_summary: str
+    published_at: datetime | None
+    published_by_user_id: UUID | None
+    created_at: datetime
