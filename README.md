@@ -6,7 +6,7 @@ FlowLens is an open-source, self-hosted workflow-transformation platform designe
 
 Instead of replacing every existing business system, FlowLens acts as a coordination and intelligence layer across them. It centralizes workflow ownership, requirements, approvals, exceptions, integrations, audit history, and operational measurements.
 
-> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization, user, role, and role-assignment operations. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
+> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization, user, role, role-assignment, and workflow-template operations. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
 
 ---
 
@@ -494,11 +494,14 @@ The current API provides:
 - `POST /organizations/{organization_id}/roles` to create a role
 - `GET /organizations/{organization_id}/roles` to list roles
 - `GET /organizations/{organization_id}/roles/{role_id}` to retrieve a role
-- `POST /organizations/{organization_id}/users/{user_id}/roles` to assign a role to a user
+- `POST /organizations/{organization_id}/users/{user_id}/roles` to assign a role
 - `GET /organizations/{organization_id}/users/{user_id}/roles` to list a user's role assignments
+- `POST /organizations/{organization_id}/workflow-templates` to create a workflow template
+- `GET /organizations/{organization_id}/workflow-templates` to list workflow templates
+- `GET /organizations/{organization_id}/workflow-templates/{workflow_template_id}` to retrieve a workflow template
 - `/docs` for interactive OpenAPI documentation
 
-Organization, user, role, and role-assignment records are validated with Pydantic and persisted in PostgreSQL through SQLAlchemy. Database constraints enforce organization-unique user emails, organization-unique role codes, and unique user-role assignments. The API returns clear `404` and `409` responses for missing records and conflicts.
+Organization, user, role, role-assignment, and workflow-template records are validated with Pydantic and persisted in PostgreSQL through SQLAlchemy. Organization and workflow-template slugs, user emails, role codes, and user-role assignments are protected by organization-aware uniqueness rules. The API returns clear `404` and `409` responses for missing records and conflicts.
 
 ### 5. Run the frontend
 
@@ -538,7 +541,7 @@ source ../../.venv/bin/activate
 alembic check
 ```
 
-The frontend is currently an interactive synthetic demonstration. Organizations, users, roles, and role assignments can now be managed through the database-backed API, but the frontend is not yet connected to those persistent records.
+The frontend is currently an interactive synthetic demonstration. Organizations, users, roles, role assignments, and workflow templates can now be created and retrieved through the database-backed API, but the frontend is not yet connected to those persistent records.
 
 ---
 
@@ -585,19 +588,18 @@ The initial release must allow someone to:
 - Alembic migration history
 - Persisted organization table with a unique organization slug
 - Database-backed organization API operations for creating, listing, and retrieving organizations
-- Duplicate-slug conflict handling and missing-organization responses
-- Persisted users and roles with organization-scoped uniqueness constraints
-- Database-backed user API operations for creating, listing, and retrieving users
-- Database-backed role API operations for creating, listing, and retrieving roles
-- Persistent user-role assignments with duplicate and cross-organization protection
-- Pydantic contracts that normalize and validate user, role, and assignment input
-- Forty-one backend tests covering system health, database readiness, validation contracts, persistence, API operations, conflicts, missing records, and organization boundaries
+- Persisted users, roles, and user-role assignments with organization-scoped constraints
+- Database-backed user, role, and role-assignment API operations
+- Persisted workflow templates with organization-scoped unique slugs and draft lifecycle status
+- Database-backed workflow-template API operations for creating, listing, and retrieving templates
+- Conflict handling and missing-record responses across implemented domains
+- Sixty-five backend tests covering system health, database readiness, validation contracts, persistence, and implemented API behavior
 - Passing frontend lint and production build checks
 - GitHub Actions automation for backend migrations, backend tests, frontend lint, and frontend builds
 
 ### Current Limitation
 
-The organization, user, role, and role-assignment domains are now backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Authentication, authorization enforcement, workflow templates, and runtime workflow records remain future implementation milestones.
+The organization, user, role, role-assignment, and workflow-template domains are backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Workflow-template versioning, stage and field definitions, and runtime workflow records remain future implementation milestones.
 
 ### Phase 1: Business Analysis and Product Definition
 
@@ -643,7 +645,7 @@ The organization, user, role, and role-assignment domains are now backed by work
 
 - [x] Implement organization API operations
 - [x] Implement users and roles
-- [ ] Implement workflow templates
+- [x] Implement workflow templates
 - [ ] Implement template versioning
 - [ ] Implement stage and field definitions
 - [ ] Implement work items
