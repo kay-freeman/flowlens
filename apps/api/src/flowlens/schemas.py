@@ -16,6 +16,12 @@ class IdentitySource(StrEnum):
     EXTERNAL = "external"
 
 
+class TemplateStatus(StrEnum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    ARCHIVED = "archived"
+
+
 class OrganizationCreate(BaseModel):
     name: str = Field(
         min_length=1,
@@ -192,3 +198,71 @@ class UserRoleResponse(BaseModel):
     role_id: UUID
     assigned_at: datetime
     assigned_by_user_id: UUID | None
+
+
+class WorkflowTemplateCreate(BaseModel):
+    slug: str = Field(
+        min_length=1,
+        max_length=100,
+        pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        examples=["contract-to-launch"],
+    )
+    name: str = Field(
+        min_length=1,
+        max_length=200,
+        examples=["Contract-to-Launch"],
+    )
+    work_item_label: str = Field(
+        min_length=1,
+        max_length=100,
+        examples=["Launch"],
+    )
+    work_item_label_plural: str = Field(
+        min_length=1,
+        max_length=100,
+        examples=["Launches"],
+    )
+    description: str = Field(
+        min_length=1,
+        max_length=2000,
+        examples=[
+            "Coordinates work from signed contract through customer launch."
+        ],
+    )
+
+    @field_validator("slug", mode="before")
+    @classmethod
+    def normalize_slug(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+    @field_validator(
+        "name",
+        "work_item_label",
+        "work_item_label_plural",
+        "description",
+        mode="before",
+    )
+    @classmethod
+    def normalize_required_text(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+
+class WorkflowTemplateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    organization_id: UUID
+    slug: str
+    name: str
+    work_item_label: str
+    work_item_label_plural: str
+    description: str
+    status: TemplateStatus
+    created_at: datetime
+    updated_at: datetime
