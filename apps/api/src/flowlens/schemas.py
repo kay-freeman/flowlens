@@ -28,6 +28,26 @@ class VersionStatus(StrEnum):
     RETIRED = "retired"
 
 
+class FieldType(StrEnum):
+    TEXT = "text"
+    LONG_TEXT = "long_text"
+    NUMBER = "number"
+    DATE = "date"
+    DATETIME = "datetime"
+    BOOLEAN = "boolean"
+    SINGLE_CHOICE = "single_choice"
+    MULTI_CHOICE = "multi_choice"
+    URL = "url"
+
+
+class ProvenanceType(StrEnum):
+    EXTERNAL = "external"
+    USER_ENTERED = "user_entered"
+    CALCULATED = "calculated"
+    DERIVED = "derived"
+    IMPORTED = "imported"
+
+
 class OrganizationCreate(BaseModel):
     name: str = Field(
         min_length=1,
@@ -303,3 +323,137 @@ class WorkflowTemplateVersionResponse(BaseModel):
     published_at: datetime | None
     published_by_user_id: UUID | None
     created_at: datetime
+
+
+class StageDefinitionCreate(BaseModel):
+    code: str = Field(
+        min_length=1,
+        max_length=100,
+        pattern=r"^[a-z][a-z0-9_]*$",
+        examples=["validation"],
+    )
+    name: str = Field(
+        min_length=1,
+        max_length=200,
+        examples=["Validation"],
+    )
+    sequence: int = Field(
+        ge=1,
+        examples=[2],
+    )
+    description: str = Field(
+        min_length=1,
+        max_length=2000,
+        examples=[
+            "Validate contract, customer, and billing information."
+        ],
+    )
+    default_owner_role_id: UUID | None = None
+    sla_minutes: int | None = Field(
+        default=None,
+        ge=1,
+        examples=[1440],
+    )
+    terminal: bool = False
+    active: bool = True
+
+    @field_validator("code", mode="before")
+    @classmethod
+    def normalize_code(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+    @field_validator("name", "description", mode="before")
+    @classmethod
+    def normalize_required_text(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+
+class StageDefinitionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    template_version_id: UUID
+    code: str
+    name: str
+    sequence: int = Field(ge=1)
+    description: str
+    default_owner_role_id: UUID | None
+    sla_minutes: int | None
+    terminal: bool
+    active: bool
+
+
+class FieldDefinitionCreate(BaseModel):
+    key: str = Field(
+        min_length=1,
+        max_length=100,
+        pattern=r"^[a-z][a-z0-9_]*$",
+        examples=["contract_value"],
+    )
+    label: str = Field(
+        min_length=1,
+        max_length=200,
+        examples=["Contract Value"],
+    )
+    field_type: FieldType
+    required: bool = False
+    source_type: ProvenanceType
+    source_system: str | None = Field(
+        default=None,
+        max_length=200,
+        examples=["Salesforce"],
+    )
+    validation_config: dict[str, object] | None = None
+    display_order: int = Field(
+        ge=1,
+        examples=[3],
+    )
+    sensitive: bool = False
+
+    @field_validator("key", mode="before")
+    @classmethod
+    def normalize_key(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+    @field_validator("label", mode="before")
+    @classmethod
+    def normalize_label(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+    @field_validator("source_system", mode="before")
+    @classmethod
+    def normalize_source_system(cls, value: object) -> object:
+        if isinstance(value, str):
+            normalized_value = value.strip()
+
+            return normalized_value or None
+
+        return value
+
+
+class FieldDefinitionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    template_version_id: UUID
+    key: str
+    label: str
+    field_type: FieldType
+    required: bool
+    source_type: ProvenanceType
+    source_system: str | None
+    validation_config: dict[str, object] | None
+    display_order: int = Field(ge=1)
+    sensitive: bool
