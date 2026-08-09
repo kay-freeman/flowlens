@@ -9,6 +9,9 @@ from flowlens.routers.organizations import (
 )
 from flowlens.routers.roles import router as roles_router
 from flowlens.routers.users import router as users_router
+from flowlens.routers.workflow_definitions import (
+    router as workflow_definitions_router,
+)
 from flowlens.routers.workflow_templates import (
     router as workflow_templates_router,
 )
@@ -42,6 +45,7 @@ app.include_router(organizations_router)
 app.include_router(users_router)
 app.include_router(roles_router)
 app.include_router(workflow_templates_router)
+app.include_router(workflow_definitions_router)
 
 
 @app.get(
