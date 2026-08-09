@@ -6,7 +6,7 @@ FlowLens is an open-source, self-hosted workflow-transformation platform designe
 
 Instead of replacing every existing business system, FlowLens acts as a coordination and intelligence layer across them. It centralizes workflow ownership, requirements, approvals, exceptions, integrations, audit history, and operational measurements.
 
-> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization, user, role, role-assignment, and workflow-template operations. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
+> **Current status:** Product definition and system design are complete, and the application foundation is running. FlowLens now includes an interactive React frontend, a FastAPI backend, containerized PostgreSQL, SQLAlchemy persistence, Alembic migrations, API health and database-readiness checks, automated quality checks, and database-backed organization, user, role, role-assignment, workflow-template, and workflow-template-version operations. Template versions support controlled publishing, publisher attribution, and automatic retirement of previously published versions. The current interface uses synthetic demonstration data while persistent workflow features are implemented and connected to the frontend.
 
 ---
 
@@ -499,9 +499,13 @@ The current API provides:
 - `POST /organizations/{organization_id}/workflow-templates` to create a workflow template
 - `GET /organizations/{organization_id}/workflow-templates` to list workflow templates
 - `GET /organizations/{organization_id}/workflow-templates/{workflow_template_id}` to retrieve a workflow template
+- `POST /organizations/{organization_id}/workflow-templates/{workflow_template_id}/versions` to create a draft workflow-template version
+- `GET /organizations/{organization_id}/workflow-templates/{workflow_template_id}/versions` to list workflow-template versions
+- `GET /organizations/{organization_id}/workflow-templates/{workflow_template_id}/versions/{workflow_template_version_id}` to retrieve a workflow-template version
+- `POST /organizations/{organization_id}/workflow-templates/{workflow_template_id}/versions/{workflow_template_version_id}/publish` to publish a draft workflow-template version
 - `/docs` for interactive OpenAPI documentation
 
-Organization, user, role, role-assignment, and workflow-template records are validated with Pydantic and persisted in PostgreSQL through SQLAlchemy. Organization and workflow-template slugs, user emails, role codes, and user-role assignments are protected by organization-aware uniqueness rules. The API returns clear `404` and `409` responses for missing records and conflicts.
+Organization, user, role, role-assignment, workflow-template, and workflow-template-version records are validated with Pydantic and persisted in PostgreSQL through SQLAlchemy. Organization and workflow-template slugs, user emails, role codes, and user-role assignments are protected by organization-aware uniqueness rules. Workflow-template versions receive sequential version numbers, begin as drafts, record publishing attribution and timestamps, and automatically retire the previously published version. The API returns clear `404` and `409` responses for missing records, conflicts, and invalid publishing actions.
 
 ### 5. Run the frontend
 
@@ -541,7 +545,7 @@ source ../../.venv/bin/activate
 alembic check
 ```
 
-The frontend is currently an interactive synthetic demonstration. Organizations, users, roles, role assignments, and workflow templates can now be created and retrieved through the database-backed API, but the frontend is not yet connected to those persistent records.
+The frontend is currently an interactive synthetic demonstration. Organizations, users, roles, role assignments, workflow templates, and workflow-template versions can now be created and retrieved through the database-backed API. Template versions can also be published through the API, but the frontend is not yet connected to those persistent records.
 
 ---
 
@@ -592,14 +596,18 @@ The initial release must allow someone to:
 - Database-backed user, role, and role-assignment API operations
 - Persisted workflow templates with organization-scoped unique slugs and draft lifecycle status
 - Database-backed workflow-template API operations for creating, listing, and retrieving templates
+- Persisted workflow-template versions with sequential version numbers and draft, published, and retired lifecycle states
+- Database-backed workflow-template-version API operations for creating, listing, and retrieving versions
+- Controlled template-version publishing with publishing timestamps and same-organization user attribution
+- Automatic activation of a template when a version is published and retirement of its previously published version
 - Conflict handling and missing-record responses across implemented domains
-- Sixty-five backend tests covering system health, database readiness, validation contracts, persistence, and implemented API behavior
+- Eighty-nine backend tests covering system health, database readiness, validation contracts, persistence, template-version publishing controls, and implemented API behavior
 - Passing frontend lint and production build checks
 - GitHub Actions automation for backend migrations, backend tests, frontend lint, and frontend builds
 
 ### Current Limitation
 
-The organization, user, role, role-assignment, and workflow-template domains are backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Workflow-template versioning, stage and field definitions, and runtime workflow records remain future implementation milestones.
+The organization, user, role, role-assignment, workflow-template, and workflow-template-version domains are backed by working API endpoints and PostgreSQL persistence. The frontend experience remains functional and navigable, but its displayed records are still synthetic and are not yet loaded from the API. Stage and field definitions, configurable workflow behavior, and runtime workflow records remain future implementation milestones.
 
 ### Phase 1: Business Analysis and Product Definition
 
@@ -646,7 +654,7 @@ The organization, user, role, role-assignment, and workflow-template domains are
 - [x] Implement organization API operations
 - [x] Implement users and roles
 - [x] Implement workflow templates
-- [ ] Implement template versioning
+- [x] Implement template versioning
 - [ ] Implement stage and field definitions
 - [ ] Implement work items
 - [ ] Implement configurable transitions
