@@ -319,3 +319,130 @@ class WorkflowTemplateVersion(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+
+class StageDefinition(Base):
+    __tablename__ = "stage_definitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "template_version_id",
+            "code",
+            name="uq_stage_definitions_version_code",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+    template_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "workflow_template_versions.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+    code: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    name: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False,
+    )
+    sequence: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    description: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    default_owner_role_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "roles.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+    sla_minutes: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    terminal: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+    active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+    )
+
+
+class FieldDefinition(Base):
+    __tablename__ = "field_definitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "template_version_id",
+            "key",
+            name="uq_field_definitions_version_key",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+    template_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "workflow_template_versions.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+    key: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    label: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False,
+    )
+    field_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+    required: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+    source_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+    source_system: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+    )
+    validation_config: Mapped[dict[str, object] | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    display_order: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    sensitive: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
