@@ -48,6 +48,20 @@ class ProvenanceType(StrEnum):
     IMPORTED = "imported"
 
 
+class WorkItemStatus(StrEnum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    CANCELED = "canceled"
+
+
+class RiskStatus(StrEnum):
+    ON_TRACK = "on_track"
+    AT_RISK = "at_risk"
+    BLOCKED = "blocked"
+    PAUSED = "paused"
+
+
 class OrganizationCreate(BaseModel):
     name: str = Field(
         min_length=1,
@@ -457,3 +471,48 @@ class FieldDefinitionResponse(BaseModel):
     validation_config: dict[str, object] | None
     display_order: int = Field(ge=1)
     sensitive: bool
+
+
+class WorkItemCreate(BaseModel):
+    template_version_id: UUID
+    display_name: str = Field(
+        min_length=1,
+        max_length=200,
+        examples=["Northstar Customer Launch"],
+    )
+    accountable_owner_id: UUID
+    target_at: datetime | None = Field(
+        default=None,
+        examples=["2026-09-30T17:00:00Z"],
+    )
+
+    @field_validator("display_name", mode="before")
+    @classmethod
+    def normalize_display_name(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
+
+class WorkItemResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    organization_id: UUID
+    template_version_id: UUID
+    display_name: str
+    status: WorkItemStatus
+    current_stage_definition_id: UUID
+    risk_status: RiskStatus
+    accountable_owner_id: UUID
+    target_at: datetime | None
+    original_target_at: datetime | None
+    paused_at: datetime | None
+    pause_reason: str | None
+    completed_at: datetime | None
+    canceled_at: datetime | None
+    cancellation_reason: str | None
+    created_at: datetime
+    updated_at: datetime
+    version: int = Field(ge=1)
