@@ -10,18 +10,27 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from flowlens.database import get_database_session
+from flowlens.models import WorkItem
 from flowlens.schemas import (
+    StageHistoryResponse,
     WorkItemCreate,
+    WorkItemFieldValueResponse,
+    WorkItemFieldValueSet,
     WorkItemResponse,
 )
 from flowlens.services.organizations import get_organization
 from flowlens.services.users import get_user
 from flowlens.services.work_items import (
     create_work_item,
+    field_value_matches_type,
+    get_field_definition_for_work_item,
     get_initial_stage_definition,
     get_work_item,
     get_workflow_template_version_for_organization,
+    list_stage_history,
+    list_work_item_field_values,
     list_work_items,
+    set_work_item_field_value,
 )
 
 
@@ -45,6 +54,31 @@ def require_organization(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Organization not found.",
         )
+
+
+def require_work_item(
+    session: Session,
+    organization_id: UUID,
+    work_item_id: UUID,
+) -> WorkItem:
+    require_organization(
+        session,
+        organization_id,
+    )
+
+    work_item = get_work_item(
+        session,
+        organization_id,
+        work_item_id,
+    )
+
+    if work_item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Work item not found.",
+        )
+
+    return work_item
 
 
 @router.post(
@@ -171,21 +205,205 @@ def get_work_item_endpoint(
     work_item_id: UUID,
     session: Session = Depends(get_database_session),
 ) -> WorkItemResponse:
-    require_organization(
-        session,
-        organization_id,
-    )
-
-    work_item = get_work_item(
+    work_item = require_work_item(
         session,
         organization_id,
         work_item_id,
     )
 
-    if work_item is None:
+    return WorkItemResponse.model_validate(work_item)
+
+
+@router.put(
+    "/{work_item_id}/field-values",
+    response_model=WorkItemFieldValueResponse,
+    summary="Set a work-item field value",
+)
+def set_work_item_field_value_endpoint(
+    organization_id: UUID,
+    work_item_id: UUID,
+    field_value_data: WorkItemFieldValueSet,
+    session: Session = Depends(get_database_session),
+) -> WorkItemFieldValueResponse:
+    work_item = require_work_item(
+        session,
+        organization_id,
+        work_item_id,
+    )
+
+    if work_item.status in {"completed", "canceled"}:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Work item not found.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Field values cannot be changed on a "
+                "completed or canceled work item."
+            ),
         )
 
-    return WorkItemResponse.model_validate(work_item)
+    field_definition = (
+        get_field_definition_for_work_item(
+            session,
+            work_item,
+            field_value_data.field_definition_id,
+        )
+    )
+
+    if field_definition is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Field definition not found.",
+        )
+
+    if (
+        field_value_data.provenance_type.value
+        != field_definition.source_type
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+            detail=(
+                "The provenance type does not match the "
+                "field definition source type."
+            ),
+        )
+
+    if not field_value_matches_type(
+        field_definition.field_type,
+        field_value_data.value,
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+            detail=(
+                "The value does not match the configured "
+                "field type."
+            ),
+        )
+
+    if (
+        field_value_data.provenance_type.value
+        == "external"
+        and field_value_data.source_system is None
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+            detail=(
+                "External field values require a "
+                "source system."
+            ),
+        )
+
+    if (
+        field_value_data.provenance_type.value
+        == "user_entered"
+        and field_value_data.set_by_user_id is None
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+            detail=(
+                "User-entered field values require a "
+                "setting user."
+            ),
+        )
+
+    if field_value_data.set_by_user_id is not None:
+        setting_user = get_user(
+            session,
+            organization_id,
+            field_value_data.set_by_user_id,
+        )
+
+        if setting_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Setting user not found.",
+            )
+
+        if not setting_user.active:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Setting user must be active.",
+            )
+
+    try:
+        field_value = set_work_item_field_value(
+            session,
+            work_item,
+            field_value_data,
+        )
+    except IntegrityError as exc:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "The work-item field value could not "
+                "be saved."
+            ),
+        ) from exc
+
+    return WorkItemFieldValueResponse.model_validate(
+        field_value
+    )
+
+
+@router.get(
+    "/{work_item_id}/field-values",
+    response_model=list[WorkItemFieldValueResponse],
+    summary="List work-item field values",
+)
+def list_work_item_field_values_endpoint(
+    organization_id: UUID,
+    work_item_id: UUID,
+    session: Session = Depends(get_database_session),
+) -> list[WorkItemFieldValueResponse]:
+    work_item = require_work_item(
+        session,
+        organization_id,
+        work_item_id,
+    )
+
+    field_values = list_work_item_field_values(
+        session,
+        work_item,
+    )
+
+    return [
+        WorkItemFieldValueResponse.model_validate(
+            field_value
+        )
+        for field_value in field_values
+    ]
+
+
+@router.get(
+    "/{work_item_id}/stage-history",
+    response_model=list[StageHistoryResponse],
+    summary="List work-item stage history",
+)
+def list_stage_history_endpoint(
+    organization_id: UUID,
+    work_item_id: UUID,
+    session: Session = Depends(get_database_session),
+) -> list[StageHistoryResponse]:
+    work_item = require_work_item(
+        session,
+        organization_id,
+        work_item_id,
+    )
+
+    stage_history = list_stage_history(
+        session,
+        work_item.id,
+    )
+
+    return [
+        StageHistoryResponse.model_validate(history)
+        for history in stage_history
+    ]
