@@ -48,6 +48,13 @@ class ProvenanceType(StrEnum):
     IMPORTED = "imported"
 
 
+class ActorSource(StrEnum):
+    USER = "user"
+    FLOWLENS = "flowlens"
+    EXTERNAL_SYSTEM = "external_system"
+    IMPORT = "import"
+
+
 class WorkItemStatus(StrEnum):
     ACTIVE = "active"
     PAUSED = "paused"
@@ -516,3 +523,66 @@ class WorkItemResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     version: int = Field(ge=1)
+
+
+class WorkItemFieldValueSet(BaseModel):
+    field_definition_id: UUID
+    value: object
+    provenance_type: ProvenanceType
+    source_system: str | None = Field(
+        default=None,
+        max_length=200,
+        examples=["Salesforce"],
+    )
+    source_reference: str | None = Field(
+        default=None,
+        max_length=500,
+        examples=["opportunity-1842"],
+    )
+    set_by_user_id: UUID | None = None
+
+    @field_validator(
+        "source_system",
+        "source_reference",
+        mode="before",
+    )
+    @classmethod
+    def normalize_optional_text(
+        cls,
+        value: object,
+    ) -> object:
+        if isinstance(value, str):
+            normalized_value = value.strip()
+
+            return normalized_value or None
+
+        return value
+
+
+class WorkItemFieldValueResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    work_item_id: UUID
+    field_definition_id: UUID
+    value: object
+    provenance_type: ProvenanceType
+    source_system: str | None
+    source_reference: str | None
+    set_by_user_id: UUID | None
+    set_at: datetime
+    updated_at: datetime
+
+
+class StageHistoryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    work_item_id: UUID
+    stage_definition_id: UUID
+    entered_at: datetime
+    exited_at: datetime | None
+    entered_by_user_id: UUID | None
+    actor_source: ActorSource
+    exit_reason: str | None
+    correlation_id: UUID
