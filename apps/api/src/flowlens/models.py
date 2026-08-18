@@ -6,11 +6,13 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -547,4 +549,134 @@ class WorkItem(Base):
         nullable=False,
         default=1,
         server_default="1",
+    )
+
+
+class WorkItemFieldValue(Base):
+    __tablename__ = "work_item_field_values"
+    __table_args__ = (
+        UniqueConstraint(
+            "work_item_id",
+            "field_definition_id",
+            name=(
+                "uq_work_item_field_values_"
+                "work_item_definition"
+            ),
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+    work_item_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "work_items.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+    field_definition_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "field_definitions.id",
+            ondelete="RESTRICT",
+        ),
+        nullable=False,
+        index=True,
+    )
+    value: Mapped[object] = mapped_column(
+        JSON,
+        nullable=False,
+    )
+    provenance_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+    source_system: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+    )
+    source_reference: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+    set_by_user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+    set_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
+class StageHistory(Base):
+    __tablename__ = "stage_history"
+    __table_args__ = (
+        Index(
+            "uq_stage_history_open_work_item",
+            "work_item_id",
+            unique=True,
+            postgresql_where=text("exited_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+    )
+    work_item_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "work_items.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+    stage_definition_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "stage_definitions.id",
+            ondelete="RESTRICT",
+        ),
+        nullable=False,
+        index=True,
+    )
+    entered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    exited_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    entered_by_user_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+    actor_source: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+    exit_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    correlation_id: Mapped[UUID] = mapped_column(
+        nullable=False,
+        default=uuid4,
     )
