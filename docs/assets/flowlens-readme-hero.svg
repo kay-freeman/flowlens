@@ -39,25 +39,35 @@
       <stop offset="1" stop-color="#2DD4BF" />
     </linearGradient>
 
-    <linearGradient
-      id="lens"
-      x1="0"
-      y1="0"
-      x2="1"
-      y2="1"
-    >
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#C4B5FD" />
       <stop offset="1" stop-color="#2DD4BF" />
     </linearGradient>
 
     <radialGradient id="purpleGlow">
-      <stop offset="0" stop-color="#8B5CF6" stop-opacity="0.32" />
-      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0" />
+      <stop
+        offset="0"
+        stop-color="#8B5CF6"
+        stop-opacity="0.32"
+      />
+      <stop
+        offset="1"
+        stop-color="#8B5CF6"
+        stop-opacity="0"
+      />
     </radialGradient>
 
     <radialGradient id="tealGlow">
-      <stop offset="0" stop-color="#2DD4BF" stop-opacity="0.25" />
-      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0" />
+      <stop
+        offset="0"
+        stop-color="#2DD4BF"
+        stop-opacity="0.25"
+      />
+      <stop
+        offset="1"
+        stop-color="#2DD4BF"
+        stop-opacity="0"
+      />
     </radialGradient>
 
     <pattern
@@ -112,7 +122,6 @@
     rx="28"
     fill="url(#background)"
   />
-
   <rect
     width="1200"
     height="420"
@@ -127,7 +136,6 @@
     ry="250"
     fill="url(#purpleGlow)"
   />
-
   <ellipse
     cx="1050"
     cy="340"
@@ -145,10 +153,7 @@
     stroke-width="2"
   />
 
-  <g
-    transform="translate(92 73)"
-    filter="url(#shadow)"
-  >
+  <g transform="translate(92 73)" filter="url(#shadow)">
     <rect
       width="132"
       height="132"
@@ -208,19 +213,29 @@
 
     <text
       x="263"
-      y="169"
+      y="166"
       fill="#D8D4E8"
-      font-size="22"
+      font-size="20"
       font-weight="500"
       letter-spacing="0.2"
     >
-      Turn fragmented processes into
-      configurable, measurable workflows.
+      Turn fragmented processes into configurable,
+    </text>
+
+    <text
+      x="263"
+      y="194"
+      fill="#D8D4E8"
+      font-size="20"
+      font-weight="500"
+      letter-spacing="0.2"
+    >
+      measurable workflows.
     </text>
 
     <rect
       x="263"
-      y="202"
+      y="218"
       width="165"
       height="38"
       rx="19"
@@ -229,17 +244,10 @@
       stroke="#A78BFA"
       stroke-opacity="0.5"
     />
-
-    <circle
-      cx="286"
-      cy="221"
-      r="5"
-      fill="#A78BFA"
-    />
-
+    <circle cx="286" cy="237" r="5" fill="#A78BFA" />
     <text
       x="301"
-      y="227"
+      y="243"
       fill="#DDD6FE"
       font-size="14"
       font-weight="700"
@@ -250,7 +258,7 @@
 
     <rect
       x="441"
-      y="202"
+      y="218"
       width="151"
       height="38"
       rx="19"
@@ -259,17 +267,10 @@
       stroke="#2DD4BF"
       stroke-opacity="0.45"
     />
-
-    <circle
-      cx="464"
-      cy="221"
-      r="5"
-      fill="#2DD4BF"
-    />
-
+    <circle cx="464" cy="237" r="5" fill="#2DD4BF" />
     <text
       x="479"
-      y="227"
+      y="243"
       fill="#99F6E4"
       font-size="14"
       font-weight="700"
@@ -280,7 +281,7 @@
 
     <rect
       x="605"
-      y="202"
+      y="218"
       width="154"
       height="38"
       rx="19"
@@ -289,17 +290,10 @@
       stroke="#60A5FA"
       stroke-opacity="0.45"
     />
-
-    <circle
-      cx="628"
-      cy="221"
-      r="5"
-      fill="#60A5FA"
-    />
-
+    <circle cx="628" cy="237" r="5" fill="#60A5FA" />
     <text
       x="643"
-      y="227"
+      y="243"
       fill="#BFDBFE"
       font-size="14"
       font-weight="700"
@@ -344,36 +338,21 @@
       stroke-opacity="0.1"
     />
 
-    <circle
-      cx="43"
-      cy="84"
-      r="10"
-      fill="#8B5CF6"
-    />
+    <circle cx="43" cy="84" r="10" fill="#8B5CF6" />
     <path
       d="M 54 84 H 99"
       stroke="#A78BFA"
       stroke-width="3"
       stroke-linecap="round"
     />
-    <circle
-      cx="110"
-      cy="84"
-      r="10"
-      fill="#7C3AED"
-    />
+    <circle cx="110" cy="84" r="10" fill="#7C3AED" />
     <path
       d="M 121 84 H 166"
       stroke="#5EEAD4"
       stroke-width="3"
       stroke-linecap="round"
     />
-    <circle
-      cx="177"
-      cy="84"
-      r="10"
-      fill="#2DD4BF"
-    />
+    <circle cx="177" cy="84" r="10" fill="#2DD4BF" />
 
     <text
       x="25"
@@ -384,7 +363,6 @@
     >
       Intake
     </text>
-
     <text
       x="93"
       y="120"
@@ -394,7 +372,6 @@
     >
       Review
     </text>
-
     <text
       x="164"
       y="120"
@@ -414,13 +391,7 @@
       fill-opacity="0.1"
     />
 
-    <circle
-      cx="34"
-      cy="173"
-      r="4"
-      fill="#2DD4BF"
-    />
-
+    <circle cx="34" cy="173" r="4" fill="#2DD4BF" />
     <text
       x="48"
       y="178"
@@ -431,13 +402,7 @@
       Owner assigned
     </text>
 
-    <circle
-      cx="34"
-      cy="204"
-      r="4"
-      fill="#A78BFA"
-    />
-
+    <circle cx="34" cy="204" r="4" fill="#A78BFA" />
     <text
       x="48"
       y="209"
@@ -472,12 +437,7 @@
       OPEN SOURCE
     </text>
 
-    <text
-      x="225"
-      y="373"
-      fill="#5B546B"
-      font-size="14"
-    >
+    <text x="225" y="373" fill="#5B546B" font-size="14">
       •
     </text>
 
@@ -492,12 +452,7 @@
       SELF-HOSTED
     </text>
 
-    <text
-      x="382"
-      y="373"
-      fill="#5B546B"
-      font-size="14"
-    >
+    <text x="382" y="373" fill="#5B546B" font-size="14">
       •
     </text>
 
@@ -512,12 +467,7 @@
       API-FIRST
     </text>
 
-    <text
-      x="515"
-      y="373"
-      fill="#5B546B"
-      font-size="14"
-    >
+    <text x="515" y="373" fill="#5B546B" font-size="14">
       •
     </text>
 
