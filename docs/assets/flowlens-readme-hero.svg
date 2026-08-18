@@ -1,0 +1,547 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1200"
+  height="420"
+  viewBox="0 0 1200 420"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">FlowLens</title>
+  <desc id="description">
+    FlowLens turns fragmented business processes into configurable,
+    measurable workflows.
+  </desc>
+
+  <defs>
+    <linearGradient
+      id="background"
+      x1="0"
+      y1="0"
+      x2="1200"
+      y2="420"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#15102A" />
+      <stop offset="0.5" stop-color="#24134B" />
+      <stop offset="1" stop-color="#102D3C" />
+    </linearGradient>
+
+    <linearGradient
+      id="accent"
+      x1="210"
+      y1="0"
+      x2="990"
+      y2="0"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#A78BFA" />
+      <stop offset="0.5" stop-color="#7C3AED" />
+      <stop offset="1" stop-color="#2DD4BF" />
+    </linearGradient>
+
+    <linearGradient
+      id="lens"
+      x1="0"
+      y1="0"
+      x2="1"
+      y2="1"
+    >
+      <stop offset="0" stop-color="#C4B5FD" />
+      <stop offset="1" stop-color="#2DD4BF" />
+    </linearGradient>
+
+    <radialGradient id="purpleGlow">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity="0.32" />
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="tealGlow">
+      <stop offset="0" stop-color="#2DD4BF" stop-opacity="0.25" />
+      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0" />
+    </radialGradient>
+
+    <pattern
+      id="grid"
+      width="32"
+      height="32"
+      patternUnits="userSpaceOnUse"
+    >
+      <path
+        d="M 32 0 L 0 0 0 32"
+        fill="none"
+        stroke="#FFFFFF"
+        stroke-opacity="0.045"
+        stroke-width="1"
+      />
+    </pattern>
+
+    <filter
+      id="shadow"
+      x="-30%"
+      y="-30%"
+      width="160%"
+      height="160%"
+    >
+      <feDropShadow
+        dx="0"
+        dy="12"
+        stdDeviation="18"
+        flood-color="#080511"
+        flood-opacity="0.5"
+      />
+    </filter>
+
+    <filter
+      id="softGlow"
+      x="-60%"
+      y="-60%"
+      width="220%"
+      height="220%"
+    >
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect
+    width="1200"
+    height="420"
+    rx="28"
+    fill="url(#background)"
+  />
+
+  <rect
+    width="1200"
+    height="420"
+    rx="28"
+    fill="url(#grid)"
+  />
+
+  <ellipse
+    cx="280"
+    cy="120"
+    rx="330"
+    ry="250"
+    fill="url(#purpleGlow)"
+  />
+
+  <ellipse
+    cx="1050"
+    cy="340"
+    rx="350"
+    ry="270"
+    fill="url(#tealGlow)"
+  />
+
+  <path
+    d="M 0 345 C 230 285, 360 455, 610 370
+       C 820 300, 970 360, 1200 285"
+    fill="none"
+    stroke="url(#accent)"
+    stroke-opacity="0.2"
+    stroke-width="2"
+  />
+
+  <g
+    transform="translate(92 73)"
+    filter="url(#shadow)"
+  >
+    <rect
+      width="132"
+      height="132"
+      rx="34"
+      fill="#FFFFFF"
+      fill-opacity="0.07"
+      stroke="#FFFFFF"
+      stroke-opacity="0.16"
+    />
+
+    <circle
+      cx="60"
+      cy="58"
+      r="31"
+      fill="none"
+      stroke="url(#lens)"
+      stroke-width="10"
+      filter="url(#softGlow)"
+    />
+
+    <path
+      d="M 82 81 L 108 107"
+      fill="none"
+      stroke="#2DD4BF"
+      stroke-width="11"
+      stroke-linecap="round"
+    />
+
+    <path
+      d="M 29 58 H 42"
+      stroke="#C4B5FD"
+      stroke-width="5"
+      stroke-linecap="round"
+    />
+
+    <path
+      d="M 60 27 V 40"
+      stroke="#C4B5FD"
+      stroke-width="5"
+      stroke-linecap="round"
+    />
+  </g>
+
+  <g
+    font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif"
+  >
+    <text
+      x="260"
+      y="124"
+      fill="#FFFFFF"
+      font-size="72"
+      font-weight="800"
+      letter-spacing="-2"
+    >
+      Flow<tspan fill="url(#accent)">Lens</tspan>
+    </text>
+
+    <text
+      x="263"
+      y="169"
+      fill="#D8D4E8"
+      font-size="22"
+      font-weight="500"
+      letter-spacing="0.2"
+    >
+      Turn fragmented processes into
+      configurable, measurable workflows.
+    </text>
+
+    <rect
+      x="263"
+      y="202"
+      width="165"
+      height="38"
+      rx="19"
+      fill="#8B5CF6"
+      fill-opacity="0.16"
+      stroke="#A78BFA"
+      stroke-opacity="0.5"
+    />
+
+    <circle
+      cx="286"
+      cy="221"
+      r="5"
+      fill="#A78BFA"
+    />
+
+    <text
+      x="301"
+      y="227"
+      fill="#DDD6FE"
+      font-size="14"
+      font-weight="700"
+      letter-spacing="0.5"
+    >
+      CONFIGURABLE
+    </text>
+
+    <rect
+      x="441"
+      y="202"
+      width="151"
+      height="38"
+      rx="19"
+      fill="#2DD4BF"
+      fill-opacity="0.12"
+      stroke="#2DD4BF"
+      stroke-opacity="0.45"
+    />
+
+    <circle
+      cx="464"
+      cy="221"
+      r="5"
+      fill="#2DD4BF"
+    />
+
+    <text
+      x="479"
+      y="227"
+      fill="#99F6E4"
+      font-size="14"
+      font-weight="700"
+      letter-spacing="0.5"
+    >
+      MEASURABLE
+    </text>
+
+    <rect
+      x="605"
+      y="202"
+      width="154"
+      height="38"
+      rx="19"
+      fill="#60A5FA"
+      fill-opacity="0.12"
+      stroke="#60A5FA"
+      stroke-opacity="0.45"
+    />
+
+    <circle
+      cx="628"
+      cy="221"
+      r="5"
+      fill="#60A5FA"
+    />
+
+    <text
+      x="643"
+      y="227"
+      fill="#BFDBFE"
+      font-size="14"
+      font-weight="700"
+      letter-spacing="0.5"
+    >
+      EXPLAINABLE
+    </text>
+  </g>
+
+  <g
+    transform="translate(865 73)"
+    filter="url(#shadow)"
+    font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif"
+  >
+    <rect
+      width="250"
+      height="232"
+      rx="24"
+      fill="#FFFFFF"
+      fill-opacity="0.065"
+      stroke="#FFFFFF"
+      stroke-opacity="0.14"
+    />
+
+    <text
+      x="24"
+      y="36"
+      fill="#A9A2BC"
+      font-size="12"
+      font-weight="700"
+      letter-spacing="1.4"
+    >
+      WORKFLOW SIGNAL
+    </text>
+
+    <line
+      x1="24"
+      y1="54"
+      x2="226"
+      y2="54"
+      stroke="#FFFFFF"
+      stroke-opacity="0.1"
+    />
+
+    <circle
+      cx="43"
+      cy="84"
+      r="10"
+      fill="#8B5CF6"
+    />
+    <path
+      d="M 54 84 H 99"
+      stroke="#A78BFA"
+      stroke-width="3"
+      stroke-linecap="round"
+    />
+    <circle
+      cx="110"
+      cy="84"
+      r="10"
+      fill="#7C3AED"
+    />
+    <path
+      d="M 121 84 H 166"
+      stroke="#5EEAD4"
+      stroke-width="3"
+      stroke-linecap="round"
+    />
+    <circle
+      cx="177"
+      cy="84"
+      r="10"
+      fill="#2DD4BF"
+    />
+
+    <text
+      x="25"
+      y="120"
+      fill="#FFFFFF"
+      font-size="15"
+      font-weight="700"
+    >
+      Intake
+    </text>
+
+    <text
+      x="93"
+      y="120"
+      fill="#FFFFFF"
+      font-size="15"
+      font-weight="700"
+    >
+      Review
+    </text>
+
+    <text
+      x="164"
+      y="120"
+      fill="#FFFFFF"
+      font-size="15"
+      font-weight="700"
+    >
+      Launch
+    </text>
+
+    <rect
+      x="24"
+      y="146"
+      width="202"
+      height="1"
+      fill="#FFFFFF"
+      fill-opacity="0.1"
+    />
+
+    <circle
+      cx="34"
+      cy="173"
+      r="4"
+      fill="#2DD4BF"
+    />
+
+    <text
+      x="48"
+      y="178"
+      fill="#D8D4E8"
+      font-size="14"
+      font-weight="500"
+    >
+      Owner assigned
+    </text>
+
+    <circle
+      cx="34"
+      cy="204"
+      r="4"
+      fill="#A78BFA"
+    />
+
+    <text
+      x="48"
+      y="209"
+      fill="#D8D4E8"
+      font-size="14"
+      font-weight="500"
+    >
+      History preserved
+    </text>
+  </g>
+
+  <g
+    font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif"
+  >
+    <line
+      x1="92"
+      y1="334"
+      x2="1108"
+      y2="334"
+      stroke="#FFFFFF"
+      stroke-opacity="0.1"
+    />
+
+    <text
+      x="92"
+      y="373"
+      fill="#A9A2BC"
+      font-size="14"
+      font-weight="600"
+      letter-spacing="0.4"
+    >
+      OPEN SOURCE
+    </text>
+
+    <text
+      x="225"
+      y="373"
+      fill="#5B546B"
+      font-size="14"
+    >
+      •
+    </text>
+
+    <text
+      x="249"
+      y="373"
+      fill="#A9A2BC"
+      font-size="14"
+      font-weight="600"
+      letter-spacing="0.4"
+    >
+      SELF-HOSTED
+    </text>
+
+    <text
+      x="382"
+      y="373"
+      fill="#5B546B"
+      font-size="14"
+    >
+      •
+    </text>
+
+    <text
+      x="406"
+      y="373"
+      fill="#A9A2BC"
+      font-size="14"
+      font-weight="600"
+      letter-spacing="0.4"
+    >
+      API-FIRST
+    </text>
+
+    <text
+      x="515"
+      y="373"
+      fill="#5B546B"
+      font-size="14"
+    >
+      •
+    </text>
+
+    <text
+      x="539"
+      y="373"
+      fill="#A9A2BC"
+      font-size="14"
+      font-weight="600"
+      letter-spacing="0.4"
+    >
+      AUDITABLE
+    </text>
+
+    <text
+      x="1108"
+      y="373"
+      fill="#5EEAD4"
+      font-size="14"
+      font-weight="700"
+      text-anchor="end"
+      letter-spacing="0.4"
+    >
+      BUILT FOR OPERATIONAL CLARITY
+    </text>
+  </g>
+</svg>

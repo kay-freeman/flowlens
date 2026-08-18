@@ -1,114 +1,169 @@
 <div align="center">
 
-# FlowLens
+<img
+  src="docs/assets/flowlens-readme-hero.svg"
+  alt="FlowLens — turn fragmented processes into configurable, measurable workflows"
+  width="100%"
+/>
 
-### Turn fragmented business processes into configurable, measurable workflows.
+<br />
 
 [![FlowLens CI](https://github.com/kay-freeman/flowlens/actions/workflows/ci.yml/badge.svg)](https://github.com/kay-freeman/flowlens/actions/workflows/ci.yml)
-![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=172033)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-7C3AED)
+![Backend Tests](https://img.shields.io/badge/backend_tests-205_passing-2DD4BF?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?style=flat-square&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-TypeScript-61DAFB?style=flat-square&logo=react&logoColor=172033)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-8B5CF6?style=flat-square)
 
 **Open source · Self-hosted · Configuration-driven · Built for operational clarity**
+
+[Why FlowLens?](#-why-flowlens) •
+[What works](#-what-works-today) •
+[Architecture](#️-architecture) •
+[API](#-api-map) •
+[Quick start](#-quick-start) •
+[Roadmap](#️-roadmap)
 
 </div>
 
 ---
 
-## The short version
+## ✦ The short version
 
 Important workflows rarely live in one system.
 
-Customer data may live in a CRM. Contracts may live in an electronic-signature platform. Approvals may happen in email or chat. Tasks may live in project-management software. Status reporting may still depend on spreadsheets.
+Customer data may live in a CRM. Contracts may live in an
+electronic-signature platform. Approvals may happen in email or chat. Tasks
+may live in project-management software. Status reporting may still depend
+on spreadsheets.
 
 Each tool can work while the overall process remains fragmented.
 
-**FlowLens is the coordination layer between those systems.**
-
-It is being built to give teams one place to define how work should move, assign accountability, control approvals and transitions, surface exceptions, preserve audit evidence, and measure performance.
-
 > [!IMPORTANT]
-> **Current build:** The application foundation and the first workflow-runtime capability are working. FlowLens currently includes an interactive React demonstration, a FastAPI backend, PostgreSQL persistence, migrations, automated CI, and database-backed APIs for organizations, users, roles, workflow templates, template versions, stages, fields, and operational work items.
+> **FlowLens is the coordination layer between those systems.**
 >
-> The frontend still displays synthetic demonstration data and is not yet connected to the persistent API.
+> It gives teams one place to define how work should move, assign
+> accountability, control workflow configuration, preserve operational
+> evidence, expose risk, and measure performance.
 
----
+FlowLens is being built as a reusable workflow-transformation platform—not
+as a one-off application for a single process.
 
-## At a glance
+### Current build
 
-| Area | What FlowLens does | Current state |
+| 🟣 Implemented | 🟡 In progress | ⚪ Planned |
 |---|---|---|
-| Workflow design | Defines reusable templates, versions, stages, and fields | Implemented |
-| Governance | Preserves published versions and rejects later configuration changes | Implemented |
-| Administration | Manages organizations, users, roles, and role assignments | Implemented |
-| Workflow runtime | Creates, lists, and retrieves persistent operational work items | Implemented |
-| Runtime controls | Advances, pauses, completes, and cancels work items | Planned |
-| Persistence | Stores implemented domains in PostgreSQL through SQLAlchemy | Implemented |
-| API | Exposes validated operations through FastAPI and OpenAPI | Implemented |
-| Quality | Runs migrations, backend tests, frontend lint, and builds in CI | Implemented |
-| Integrations | Accepts CSV, REST, and webhook intake | Planned |
-| Dashboard | Measures ownership, risk, exceptions, and cycle time | Demonstration UI |
-| Background work | Processes queued and retryable jobs | Planned |
+| Organizations, users, and roles | Workflow runtime controls | Redis and Celery |
+| Versioned workflow templates | Remaining workflow entities | External integrations |
+| Stages and field definitions | Frontend/API connection | Operational reporting |
+| Persistent work items | Frontend production UX | End-to-end testing |
+| Field values and provenance | | Complete Docker runtime |
+| Initial stage history | | |
+| PostgreSQL migrations | | |
+| Automated CI | | |
+
+> [!NOTE]
+> The React frontend is currently an interactive demonstration using
+> synthetic data. The backend APIs use persistent PostgreSQL records, but the
+> frontend has not yet been connected to them.
 
 ---
 
-## The problem FlowLens is solving
+## 🔭 Why FlowLens?
 
 Fragmented operations create predictable problems:
 
-- Nobody knows who owns the next action.
-- The same information gets entered into multiple systems.
-- Approvals exist as messages instead of structured decisions.
-- Exceptions disappear inside email threads or chat channels.
-- Teams assemble status reports manually.
-- Integration failures remain hidden in logs.
-- Different departments report conflicting status.
-- Risks become visible only after deadlines are missed.
-- Historical evidence is overwritten or impossible to reconstruct.
-- Process performance cannot be measured consistently.
+- 👤 Nobody knows who owns the next action.
+- 🔁 The same information gets entered into multiple systems.
+- 💬 Approvals exist as messages instead of structured decisions.
+- 🕳️ Exceptions disappear inside email threads or chat channels.
+- 📊 Teams assemble status reports manually.
+- 🔌 Integration failures remain hidden in logs.
+- ⚠️ Risk becomes visible only after a deadline is missed.
+- 🧩 Different departments report conflicting status.
+- 🕰️ Historical evidence is overwritten or impossible to reconstruct.
+- 📉 Process performance cannot be measured consistently.
 
-FlowLens is designed to convert that fragmentation into a controlled operational workflow.
+FlowLens converts that fragmentation into a controlled, visible, and
+measurable operational workflow.
 
 ```mermaid
 flowchart LR
-    A["Scattered systems"] --> B["FlowLens coordination layer"]
+    A["Scattered systems"] --> B["FlowLens"]
     B --> C["Clear ownership"]
-    B --> D["Controlled workflow"]
+    B --> D["Controlled work"]
     B --> E["Visible risk"]
-    B --> F["Measurable results"]
+    B --> F["Measurable outcomes"]
 ```
 
 ---
 
-## What makes FlowLens different
+## 💡 What makes FlowLens different?
 
-### Configuration instead of hardcoding
+<table>
+<tr>
+<td width="50%" valign="top">
 
-Organizations define reusable templates, versioned stages, fields, roles, requirements, approvals, and rules without turning FlowLens into a one-workflow application.
+### 🧩 Configuration over hardcoding
 
-### Coordination instead of replacement
+Organizations define reusable templates, versioned stages, fields, roles,
+requirements, approvals, and rules without turning FlowLens into a
+single-workflow application.
 
-FlowLens does not need to replace every CRM, billing platform, contract tool, or project-management system. It coordinates the work that moves between them.
+</td>
+<td width="50%" valign="top">
 
-### Evidence instead of informal status
+### 🔗 Coordination over replacement
 
-Approvals, assignments, exceptions, transitions, and integration activity are designed to become structured records rather than scattered messages.
+FlowLens does not need to replace every CRM, billing platform, contract tool,
+or project-management system. It coordinates work across them.
 
-### Explainable controls
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
-The first release prioritizes deterministic business rules and understandable risk signals over opaque automation.
+### 🧾 Evidence over informal status
 
-### Historical integrity
+Values, approvals, assignments, exceptions, transitions, and integration
+activity become structured records instead of scattered messages.
 
-Published workflow versions become immutable. Existing work retains the configuration that governed it, while future work can use a newer version.
+</td>
+<td width="50%" valign="top">
+
+### 🔍 Explainable controls
+
+The first release prioritizes deterministic business rules and understandable
+risk signals over opaque automation.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 🕰️ Historical integrity
+
+Published workflow versions remain interpretable. Existing work retains its
+original configuration while future work can use newer versions.
+
+</td>
+<td width="50%" valign="top">
+
+### 🧭 Operational clarity
+
+Ownership, current stage, field provenance, targets, risk, and history are
+designed to be visible in one coordinated record.
+
+</td>
+</tr>
+</table>
 
 ---
 
-## What works today
+## ✅ What works today
 
-### Application foundation
+### 🏗️ Application foundation
 
 - Interactive React and TypeScript demonstration interface
 - FastAPI application with generated OpenAPI documentation
@@ -120,7 +175,7 @@ Published workflow versions become immutable. Existing work retains the configur
 - GitHub Actions continuous integration
 - Passing frontend lint and production builds
 
-### Administration
+### 🏢 Administration
 
 - Create, list, and retrieve organizations
 - Create, list, and retrieve users
@@ -130,7 +185,7 @@ Published workflow versions become immutable. Existing work retains the configur
 - Prevent cross-organization role assignments
 - Return clear missing-record and conflict responses
 
-### Workflow templates
+### 🗂️ Workflow templates
 
 - Create, list, and retrieve workflow templates
 - Enforce organization-scoped template slugs
@@ -141,29 +196,28 @@ Published workflow versions become immutable. Existing work retains the configur
 - Automatically retire the previously published version
 - Reject attempts to republish or modify a nondraft version
 
-### Stage definitions
+### 🪜 Stage definitions
 
 - Create, list, and retrieve stages within a template version
-- Define stable stage codes
-- Control stage sequence
-- Set stage descriptions and SLAs
+- Define stable stage codes and stage order
+- Configure descriptions and service-level targets
 - Assign an optional default owner role
 - Mark terminal and active stages
 - Reject roles owned by another organization
 - Prevent duplicate stage codes within a version
 
-### Field definitions
+### 🧱 Field definitions
 
 - Create, list, and retrieve fields within a template version
-- Define stable field keys and display labels
-- Set field types and required status
-- Track data provenance and source systems
+- Define stable field keys and user-facing labels
+- Configure field types and required status
+- Define expected provenance and source systems
 - Store controlled JSON validation settings
 - Control display order
 - Mark sensitive fields
 - Prevent duplicate field keys within a version
 
-### Work items
+### 🚀 Work items
 
 - Create persistent work items from published template versions
 - List work items within an organization
@@ -171,24 +225,51 @@ Published workflow versions become immutable. Existing work retains the configur
 - Automatically select the first active configured stage
 - Require an active accountable owner from the same organization
 - Start new work as `active` and `on_track`
-- Preserve both current and original target timestamps
+- Preserve current and original target timestamps
 - Track optimistic-concurrency version numbers
 - Reject draft or foreign template versions
 - Reject configurations without an active starting stage
 - Prevent cross-organization access to work items
 
-### Quality proof
+### 🧬 Field values and provenance
 
-- **171 passing backend tests**
-- Migration consistency verified through Alembic
-- Backend tests executed automatically in GitHub Actions
-- Frontend lint and production builds executed automatically
-- Live API flows verified through interactive OpenAPI documentation
-- Live work-item creation, listing, and retrieval verified against PostgreSQL
+- Set configured field values on active work items
+- Update existing values without creating duplicates
+- List values in configured display order
+- Validate runtime values against configured field types
+- Require provenance to match the field definition
+- Require a source system for externally sourced values
+- Require an organization-scoped user for manually entered values
+- Record source references, setting users, and timestamps
+- Reject fields belonging to another template version
+- Prevent field changes on completed or canceled work
+
+### 🕰️ Stage history
+
+- Create an initial stage-history record with every work item
+- Record the configured starting stage
+- Identify whether entry came from a user, FlowLens, an external system, or an import
+- Preserve stage-entry timestamps
+- Generate a correlation ID for operational traceability
+- Enforce only one open stage-history record per work item
+- Retrieve organization-scoped stage history through the API
+
+### 🧪 Quality proof
+
+| Signal | Current result |
+|---|---|
+| Backend tests | **205 passing** |
+| Migration state | Alembic head verified |
+| Schema consistency | No new upgrade operations detected |
+| Backend CI | Passing |
+| Frontend lint | Passing |
+| Frontend production build | Passing |
+| OpenAPI verification | Work items, field values, and stage history verified live |
+| Persistence | Verified against PostgreSQL |
 
 ---
 
-## Configuration lifecycle
+## 🔄 Configuration lifecycle
 
 Workflow configuration is intentionally versioned.
 
@@ -196,10 +277,10 @@ Workflow configuration is intentionally versioned.
 stateDiagram-v2
     [*] --> Draft
     Draft --> Published: Publish
-    Published --> WorkItem: Create operational work
-    Published --> Retired: New version published
+    Published --> ActiveWork: Create work item
+    Published --> Retired: Publish newer version
+    ActiveWork --> [*]: Retains original version
     Retired --> [*]: Preserved for history
-    WorkItem --> [*]: Retains its version
 ```
 
 A draft version can receive stages and fields. Once published:
@@ -215,42 +296,39 @@ A draft version can receive stages and fields. Once published:
 
 ---
 
-## Northstar demonstration
+## 🧪 Northstar demonstration
 
-FlowLens includes **Northstar Business Services**, a fictional company used to demonstrate a contract-to-launch workflow.
+FlowLens includes **Northstar Business Services**, a fictional company used
+to demonstrate a contract-to-launch workflow.
 
 ### The scenario
 
 Northstar coordinates work across:
 
-- Sales
-- Legal
-- Finance
-- Implementation
-- Service Delivery
-- Operations
+| Business teams | Fictional systems |
+|---|---|
+| Sales | Salesforce |
+| Legal | DocuSign |
+| Finance | NetSuite |
+| Implementation | Jira |
+| Service Delivery | Gmail and Slack |
+| Operations | Google Sheets |
 
-Its fictional systems include:
+Its current-state process depends on manual handoffs, spreadsheet
+reconciliation, scattered approvals, and informal exception management.
 
-- Salesforce
-- DocuSign
-- Gmail
-- Google Sheets
-- Slack
-- Jira
-- NetSuite
+### What Northstar demonstrates
 
-Its current-state process depends on manual handoffs, spreadsheet reconciliation, scattered approvals, and informal exception management.
-
-### What the scenario demonstrates
-
-| FlowLens platform capability | Northstar example |
+| FlowLens capability | Northstar example |
 |---|---|
 | Generic workflow template | Contract-to-launch |
 | Versioned configuration | Sequential launch-process versions |
 | Stage definitions | Intake, validation, review, readiness, approval, launch |
 | Field definitions | Customer, contract, billing, and launch information |
 | Persistent work item | Northstar Enterprise Customer Launch |
+| Runtime field value | Salesforce contract value |
+| Field provenance | External source and opportunity reference |
+| Stage history | FlowLens-created initial Intake record |
 | Accountable ownership | Organization-scoped operational owner |
 | User roles | Operations, Legal, Finance, and Implementation ownership |
 | Structured approvals | Legal and Finance decisions |
@@ -259,13 +337,17 @@ Its current-state process depends on manual handoffs, spreadsheet reconciliation
 | Operational measurement | Launch cycle time and stage aging |
 | Adapter framework | Synthetic Salesforce and NetSuite events |
 
-Northstar is synthetic demonstration data. It is not hardcoded into the platform, and it does not represent a real company or real operational results.
+> [!CAUTION]
+> Northstar is synthetic demonstration data. It is not hardcoded into the
+> platform, and it does not represent a real company or real operational
+> results.
 
 ---
 
-## Architecture
+## 🏛️ Architecture
 
-FlowLens uses a modular-monolith architecture: strong domain boundaries without unnecessary distributed-system complexity.
+FlowLens uses a **modular-monolith architecture**: strong domain boundaries
+without unnecessary distributed-system complexity.
 
 ```mermaid
 flowchart TD
@@ -280,30 +362,30 @@ flowchart TD
     W -. planned .-> DB
 ```
 
-### Current runtime
+### Technology map
 
-| Component | Technology | Status |
+| Layer | Technology | Status |
 |---|---|---|
-| Web application | React, TypeScript, Vite | Implemented |
-| Client routing | React Router | Implemented |
-| Backend API | FastAPI, Python 3.12 | Implemented |
-| Validation | Pydantic | Implemented |
-| Database | PostgreSQL 17 | Implemented |
-| Persistence | SQLAlchemy | Implemented |
-| Migrations | Alembic | Implemented |
-| API documentation | OpenAPI and Swagger UI | Implemented |
-| Backend testing | Pytest | Implemented |
-| Continuous integration | GitHub Actions | Implemented |
-| Queue and cache | Redis | Planned |
-| Background processing | Celery | Planned |
-| Server-state management | TanStack Query | Planned |
-| Dashboard visualization | Recharts | Planned |
-| Frontend testing | Vitest and Testing Library | Planned |
-| End-to-end testing | Playwright | Planned |
+| Web application | React, TypeScript, Vite | ✅ Implemented |
+| Client routing | React Router | ✅ Implemented |
+| Backend API | FastAPI, Python 3.12 | ✅ Implemented |
+| Validation | Pydantic | ✅ Implemented |
+| Database | PostgreSQL 17 | ✅ Implemented |
+| Persistence | SQLAlchemy | ✅ Implemented |
+| Migrations | Alembic | ✅ Implemented |
+| API documentation | OpenAPI and Swagger UI | ✅ Implemented |
+| Backend testing | Pytest | ✅ Implemented |
+| Continuous integration | GitHub Actions | ✅ Implemented |
+| Queue and cache | Redis | ⚪ Planned |
+| Background processing | Celery | ⚪ Planned |
+| Server-state management | TanStack Query | ⚪ Planned |
+| Dashboard visualization | Recharts | ⚪ Planned |
+| Frontend testing | Vitest and Testing Library | ⚪ Planned |
+| End-to-end testing | Playwright | ⚪ Planned |
 
 ---
 
-## Domain map
+## 🧭 Domain map
 
 ```mermaid
 flowchart TD
@@ -313,25 +395,32 @@ flowchart TD
     VER --> STG["Stage definitions"]
     VER --> FLD["Field definitions"]
     VER --> RUN["Work items"]
-    RUN -. next .-> HIST["Values and stage history"]
+    FLD --> VAL["Field values"]
+    RUN --> VAL
+    STG --> HIST["Stage history"]
+    RUN --> HIST
 ```
 
-| Domain | Core entities |
+| Domain | Implemented entities |
 |---|---|
 | Administration | Organization, User, Role, UserRole |
 | Workflow configuration | WorkflowTemplate, WorkflowTemplateVersion, StageDefinition, FieldDefinition |
-| Workflow runtime | WorkItem |
-| Planned configuration | RequirementDefinition, ApprovalDefinition, RuleDefinition, MetricDefinition |
-| Planned runtime | WorkItemFieldValue, StageHistory, Assignment, Approval, Requirement, Exception, RiskSnapshot |
-| Planned integration and audit | WorkflowEvent, IntegrationEvent, ImportJob, ProcessingAttempt |
+| Workflow runtime | WorkItem, WorkItemFieldValue, StageHistory |
 
-See the complete design in [`docs/data-model.md`](docs/data-model.md).
+| Planned domain | Planned entities |
+|---|---|
+| Configuration controls | RequirementDefinition, ApprovalDefinition, RuleDefinition, MetricDefinition |
+| Runtime controls | Assignment, Approval, Requirement, Exception, RiskSnapshot |
+| Integration and audit | WorkflowEvent, IntegrationEvent, ImportJob, ProcessingAttempt |
+
+See the full design in
+[`docs/data-model.md`](docs/data-model.md).
 
 ---
 
-## API map
+## 🔌 API map
 
-Interactive documentation is available at:
+Interactive API documentation is available at:
 
 ```text
 http://localhost:8000/docs
@@ -379,7 +468,7 @@ http://localhost:8000/docs
 
 ### Stage and field definitions
 
-The following endpoints share this base path:
+These endpoints share the following base path:
 
 ```text
 /organizations/{organization_id}/workflow-templates/{template_id}/versions/{version_id}
@@ -396,15 +485,24 @@ The following endpoints share this base path:
 
 ### Work items
 
-| Method | Endpoint | Purpose |
+These endpoints share the following base path:
+
+```text
+/organizations/{organization_id}/work-items
+```
+
+| Method | Endpoint suffix | Purpose |
 |---|---|---|
-| `POST` | `/organizations/{organization_id}/work-items` | Create a work item from a published template version |
-| `GET` | `/organizations/{organization_id}/work-items` | List work items |
-| `GET` | `/organizations/{organization_id}/work-items/{work_item_id}` | Retrieve a work item |
+| `POST` | `/` | Create a work item from a published template version |
+| `GET` | `/` | List work items |
+| `GET` | `/{work_item_id}` | Retrieve a work item |
+| `PUT` | `/{work_item_id}/field-values` | Set or update a configured field value |
+| `GET` | `/{work_item_id}/field-values` | List configured field values |
+| `GET` | `/{work_item_id}/stage-history` | List stage-history records |
 
 ---
 
-## Quick start
+## ⚡ Quick start
 
 ### Prerequisites
 
@@ -422,7 +520,9 @@ cd flowlens
 cp .env.example .env
 ```
 
-The included values are for local development only. Do not reuse them in a public or production environment.
+> [!WARNING]
+> The included environment values are for local development only. Do not
+> reuse them in a public or production environment.
 
 ### 2. Start PostgreSQL
 
@@ -431,7 +531,7 @@ docker compose up -d postgres
 docker compose ps
 ```
 
-Wait for the PostgreSQL service to report a healthy status.
+Wait for PostgreSQL to report a healthy status.
 
 ### 3. Prepare the API
 
@@ -457,7 +557,7 @@ uvicorn flowlens.main:app \
 
 Open:
 
-- API health: `http://localhost:8000/health`
+- Health: `http://localhost:8000/health`
 - Database readiness: `http://localhost:8000/ready`
 - Interactive API documentation: `http://localhost:8000/docs`
 
@@ -474,13 +574,14 @@ npm run dev -- --host 0.0.0.0
 Vite will display the frontend address, typically on port `5173`.
 
 > [!NOTE]
-> The frontend is currently an interactive synthetic demonstration. The implemented API records are persistent, but the frontend has not yet been connected to them.
+> The frontend currently presents a synthetic interactive demonstration.
+> Persistent API records are not yet loaded into the interface.
 
 ---
 
-## Run the checks
+## 🧰 Run the checks
 
-### Backend tests
+### Backend
 
 ```bash
 cd flowlens
@@ -496,7 +597,7 @@ source ../../.venv/bin/activate
 alembic check
 ```
 
-### Frontend quality checks
+### Frontend
 
 ```bash
 cd flowlens/apps/web
@@ -506,22 +607,22 @@ npm run build
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
 ### Progress snapshot
 
-| Phase | Status |
-|---|---|
-| 1. Business analysis and product definition | Complete |
-| 2. Requirements and future-state design | Complete |
-| 3. Application foundation | In progress |
-| 4. Configurable workflow engine | In progress |
-| 5. Intake and integrations | Planned |
-| 6. User experience and reporting | Planned |
-| 7. Validation and release | Planned |
+| Phase | Status | Signal |
+|---|---|---|
+| 1. Business analysis and product definition | ✅ Complete | Product direction established |
+| 2. Requirements and future-state design | ✅ Complete | System behavior documented |
+| 3. Application foundation | 🟡 In progress | Core runtime established |
+| 4. Configurable workflow engine | 🟡 In progress | Persistent workflow runtime underway |
+| 5. Intake and integrations | ⚪ Planned | External intake and adapters |
+| 6. User experience and reporting | ⚪ Planned | Connected operational interface |
+| 7. Validation and release | ⚪ Planned | Production-ready MVP |
 
 <details>
-<summary><strong>Phase 1: Business analysis and product definition</strong></summary>
+<summary><strong>✅ Phase 1: Business analysis and product definition</strong></summary>
 
 - [x] Define the transformation case
 - [x] Document the current state
@@ -536,7 +637,7 @@ npm run build
 </details>
 
 <details>
-<summary><strong>Phase 2: Requirements and future-state design</strong></summary>
+<summary><strong>✅ Phase 2: Requirements and future-state design</strong></summary>
 
 - [x] Document functional requirements
 - [x] Document business rules
@@ -552,8 +653,8 @@ npm run build
 
 </details>
 
-<details open>
-<summary><strong>Phase 3: Application foundation</strong></summary>
+<details>
+<summary><strong>🟡 Phase 3: Application foundation</strong></summary>
 
 - [x] Create the monorepo structure
 - [x] Scaffold the FastAPI backend
@@ -570,7 +671,7 @@ npm run build
 </details>
 
 <details open>
-<summary><strong>Phase 4: Configurable workflow engine</strong></summary>
+<summary><strong>🟡 Phase 4: Configurable workflow engine</strong></summary>
 
 - [x] Implement organization API operations
 - [x] Implement users and roles
@@ -578,6 +679,8 @@ npm run build
 - [x] Implement template versioning
 - [x] Implement stage and field definitions
 - [x] Implement work items
+- [x] Implement work-item field values and provenance
+- [x] Implement initial stage history
 - [ ] Implement configurable transitions
 - [ ] Implement assignment rules
 - [ ] Implement requirements
@@ -589,7 +692,7 @@ npm run build
 </details>
 
 <details>
-<summary><strong>Phase 5: Intake and integrations</strong></summary>
+<summary><strong>⚪ Phase 5: Intake and integrations</strong></summary>
 
 - [ ] Implement manual work-item intake
 - [ ] Implement CSV validation preview
@@ -605,7 +708,7 @@ npm run build
 </details>
 
 <details>
-<summary><strong>Phase 6: User experience and reporting</strong></summary>
+<summary><strong>⚪ Phase 6: User experience and reporting</strong></summary>
 
 - [ ] Build the operational dashboard
 - [ ] Build the work-item queue
@@ -621,7 +724,7 @@ npm run build
 </details>
 
 <details>
-<summary><strong>Phase 7: Validation and release</strong></summary>
+<summary><strong>⚪ Phase 7: Validation and release</strong></summary>
 
 - [ ] Complete backend unit tests
 - [ ] Complete API integration tests
@@ -639,11 +742,11 @@ npm run build
 
 ---
 
-## Release gate
+## 🚦 Release gate
 
-FlowLens will not be considered usable because a screenshot or mockup exists.
+A screenshot or mockup alone does not make FlowLens usable.
 
-The first usable release must allow someone to:
+The first release must allow someone to:
 
 - [ ] Clone and configure the repository
 - [ ] Start the complete application with documented commands
@@ -654,21 +757,26 @@ The first usable release must allow someone to:
 - [ ] Load persistent configuration in the frontend
 - [x] Create work items
 - [x] Assign accountable ownership during work-item creation
+- [x] Record configured field values with provenance
 - [ ] Complete requirements
 - [ ] Record approvals
 - [ ] Move work through valid stages
 - [ ] Create and resolve exceptions
-- [ ] Review workflow history
+- [x] Review initial workflow history through the API
 - [ ] Import records through CSV
-- [ ] Submit records through the runtime API
+- [ ] Submit records through the runtime intake API
 - [ ] Process generic webhook events
 - [ ] Review operational measurements
-- [ ] Restart the application without losing data
+- [ ] Restart the complete application without losing data
 - [ ] Follow the documentation without assistance from the original developer
 
 ---
 
-## Documentation library
+## 📚 Documentation library
+
+<table>
+<tr>
+<td width="33%" valign="top">
 
 ### Business analysis
 
@@ -677,12 +785,18 @@ The first usable release must allow someone to:
 - [Stakeholder Analysis](docs/stakeholders.md)
 - [Success Measures](docs/success-measures.md)
 
-### Requirements and traceability
+</td>
+<td width="33%" valign="top">
+
+### Requirements
 
 - [Product Scope](docs/product-scope.md)
 - [Requirements Specification](docs/requirements.md)
 - [Acceptance Criteria](docs/acceptance-criteria.md)
-- [Requirements Traceability Matrix](docs/traceability-matrix.md)
+- [Traceability Matrix](docs/traceability-matrix.md)
+
+</td>
+<td width="33%" valign="top">
 
 ### Solution design
 
@@ -691,29 +805,35 @@ The first usable release must allow someone to:
 - [Data Model](docs/data-model.md)
 - [Integration Contracts](docs/integration-contracts.md)
 
+</td>
+</tr>
+</table>
+
 ---
 
-## Success measures
+## 📈 Success measures
 
 The Northstar demonstration is designed to model improvements such as:
 
 | Outcome | Intended signal |
 |---|---|
-| Faster workflow completion | Reduced end-to-end cycle time |
-| Clear accountability | Active work always has an owner and next action |
-| Better handoffs | Increased first-pass acceptance |
-| Stronger governance | Structured approval coverage |
-| Earlier intervention | Risk detected before a missed deadline |
-| Faster exception handling | Reduced time to resolution |
-| Less manual reporting | Reduced preparation time |
-| Safer integrations | Visible failures, retries, and duplicate protection |
-| Better evidence | Complete workflow and decision history |
+| ⚡ Faster workflow completion | Reduced end-to-end cycle time |
+| 👤 Clear accountability | Active work always has an owner and next action |
+| 🤝 Better handoffs | Increased first-pass acceptance |
+| 🛡️ Stronger governance | Structured approval coverage |
+| 🔭 Earlier intervention | Risk detected before a missed deadline |
+| 🚨 Faster exception handling | Reduced time to resolution |
+| 📊 Less manual reporting | Reduced preparation time |
+| 🔌 Safer integrations | Visible failures, retries, and duplicate protection |
+| 🧾 Better evidence | Complete workflow and decision history |
 
-Because FlowLens is a portfolio project, displayed results will always be identified as synthetic, simulated, modeled, baseline, or target values. Synthetic outcomes will never be presented as real organizational results.
+Because FlowLens is a portfolio project, displayed results will always be
+identified as synthetic, simulated, modeled, baseline, or target values.
+Synthetic outcomes will never be presented as real organizational results.
 
 ---
 
-## Guardrails
+## 🛡️ Guardrails
 
 Operational improvement must not weaken required controls.
 
@@ -727,10 +847,12 @@ FlowLens is designed so that:
 - Restricted decision details remain protected.
 - Workflow events are not silently discarded.
 - Published workflow versions remain historically interpretable.
+- Field provenance remains attached to runtime values.
+- Organization boundaries are enforced throughout the API.
 
 ---
 
-## Project boundaries
+## 📦 Project boundaries
 
 The first release will not claim to provide:
 
@@ -745,13 +867,15 @@ The first release will not claim to provide:
 - Native mobile applications
 - Replacement functionality for specialized business systems
 
-These boundaries keep the initial release achievable while preserving a reusable foundation.
+These boundaries keep the first release achievable while preserving a
+reusable foundation.
 
 ---
 
-## Why this project matters
+## 🌟 Why this project matters
 
-FlowLens is both a product implementation and a systems-analysis portfolio project.
+FlowLens is both a product implementation and a systems-analysis portfolio
+project.
 
 It demonstrates:
 
@@ -768,13 +892,16 @@ It demonstrates:
 - Technical documentation
 - Incremental product delivery
 
-The project is meant to show not only the ability to build software, but the ability to determine **what should be built, why it should exist, how it should behave, and how success should be measured.**
+The project is meant to demonstrate not only the ability to build software,
+but the ability to determine **what should be built, why it should exist, how
+it should behave, and how success should be measured.**
 
 ---
 
-## Data and privacy
+## 🔐 Data and privacy
 
-All organizations, people, customer records, transactions, and integration events included in this repository are fictional and synthetic.
+All organizations, people, customer records, transactions, and integration
+events included in this repository are fictional and synthetic.
 
 FlowLens must never contain:
 
@@ -787,12 +914,20 @@ FlowLens must never contain:
 
 ---
 
-## License
+<div align="center">
+
+## Built with intention
+
+**Clear ownership. Controlled workflows. Explainable outcomes.**
 
 FlowLens is available under the [MIT License](LICENSE).
 
----
+Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio
+project focused on systems analysis, business-systems transformation,
+workflow design, integration architecture, and operational improvement.
 
-## Author
+<br />
 
-Created by [Kay Freeman](https://github.com/kay-freeman) as a portfolio project focused on systems analysis, business-systems transformation, workflow design, integration architecture, and operational improvement.
+![FlowLens](https://img.shields.io/badge/FlowLens-built_for_operational_clarity-7C3AED?style=for-the-badge)
+
+</div>
