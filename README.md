@@ -30,7 +30,7 @@ Each tool can work while the overall process remains fragmented.
 It is being built to give teams one place to define how work should move, assign accountability, control approvals and transitions, surface exceptions, preserve audit evidence, and measure performance.
 
 > [!IMPORTANT]
-> **Current build:** The application foundation and the first configuration domains are working. FlowLens currently includes an interactive React demonstration, a FastAPI backend, PostgreSQL persistence, migrations, automated CI, and database-backed APIs for organizations, users, roles, workflow templates, template versions, stages, and fields.
+> **Current build:** The application foundation and the first workflow-runtime capability are working. FlowLens currently includes an interactive React demonstration, a FastAPI backend, PostgreSQL persistence, migrations, automated CI, and database-backed APIs for organizations, users, roles, workflow templates, template versions, stages, fields, and operational work items.
 >
 > The frontend still displays synthetic demonstration data and is not yet connected to the persistent API.
 
@@ -43,10 +43,11 @@ It is being built to give teams one place to define how work should move, assign
 | Workflow design | Defines reusable templates, versions, stages, and fields | Implemented |
 | Governance | Preserves published versions and rejects later configuration changes | Implemented |
 | Administration | Manages organizations, users, roles, and role assignments | Implemented |
+| Workflow runtime | Creates, lists, and retrieves persistent operational work items | Implemented |
+| Runtime controls | Advances, pauses, completes, and cancels work items | Planned |
 | Persistence | Stores implemented domains in PostgreSQL through SQLAlchemy | Implemented |
 | API | Exposes validated operations through FastAPI and OpenAPI | Implemented |
 | Quality | Runs migrations, backend tests, frontend lint, and builds in CI | Implemented |
-| Workflow runtime | Creates and advances operational work items | Planned |
 | Integrations | Accepts CSV, REST, and webhook intake | Planned |
 | Dashboard | Measures ownership, risk, exceptions, and cycle time | Demonstration UI |
 | Background work | Processes queued and retryable jobs | Planned |
@@ -162,13 +163,28 @@ Published workflow versions become immutable. Existing work retains the configur
 - Mark sensitive fields
 - Prevent duplicate field keys within a version
 
+### Work items
+
+- Create persistent work items from published template versions
+- List work items within an organization
+- Retrieve organization-scoped work-item details
+- Automatically select the first active configured stage
+- Require an active accountable owner from the same organization
+- Start new work as `active` and `on_track`
+- Preserve both current and original target timestamps
+- Track optimistic-concurrency version numbers
+- Reject draft or foreign template versions
+- Reject configurations without an active starting stage
+- Prevent cross-organization access to work items
+
 ### Quality proof
 
-- **144 passing backend tests**
+- **171 passing backend tests**
 - Migration consistency verified through Alembic
 - Backend tests executed automatically in GitHub Actions
 - Frontend lint and production builds executed automatically
 - Live API flows verified through interactive OpenAPI documentation
+- Live work-item creation, listing, and retrieval verified against PostgreSQL
 
 ---
 
@@ -180,9 +196,10 @@ Workflow configuration is intentionally versioned.
 stateDiagram-v2
     [*] --> Draft
     Draft --> Published: Publish
+    Published --> WorkItem: Create operational work
     Published --> Retired: New version published
-    Published --> [*]: Used by new work
     Retired --> [*]: Preserved for history
+    WorkItem --> [*]: Retains its version
 ```
 
 A draft version can receive stages and fields. Once published:
@@ -192,6 +209,8 @@ A draft version can receive stages and fields. Once published:
 - The parent workflow template becomes active.
 - The previously published version becomes retired.
 - New configuration changes to that version are rejected.
+- New work items can use the published configuration.
+- Existing work items retain their original template version.
 - Historical interpretation remains stable.
 
 ---
@@ -231,6 +250,8 @@ Its current-state process depends on manual handoffs, spreadsheet reconciliation
 | Versioned configuration | Sequential launch-process versions |
 | Stage definitions | Intake, validation, review, readiness, approval, launch |
 | Field definitions | Customer, contract, billing, and launch information |
+| Persistent work item | Northstar Enterprise Customer Launch |
+| Accountable ownership | Organization-scoped operational owner |
 | User roles | Operations, Legal, Finance, and Implementation ownership |
 | Structured approvals | Legal and Finance decisions |
 | Exception management | Missing contract or billing blockers |
@@ -291,15 +312,17 @@ flowchart TD
     WT --> VER["Template version"]
     VER --> STG["Stage definitions"]
     VER --> FLD["Field definitions"]
-    VER -. next .-> RUN["Work items and runtime"]
+    VER --> RUN["Work items"]
+    RUN -. next .-> HIST["Values and stage history"]
 ```
 
 | Domain | Core entities |
 |---|---|
 | Administration | Organization, User, Role, UserRole |
 | Workflow configuration | WorkflowTemplate, WorkflowTemplateVersion, StageDefinition, FieldDefinition |
+| Workflow runtime | WorkItem |
 | Planned configuration | RequirementDefinition, ApprovalDefinition, RuleDefinition, MetricDefinition |
-| Planned runtime | WorkItem, FieldValue, StageHistory, Assignment, Approval, Requirement, Exception, RiskSnapshot |
+| Planned runtime | WorkItemFieldValue, StageHistory, Assignment, Approval, Requirement, Exception, RiskSnapshot |
 | Planned integration and audit | WorkflowEvent, IntegrationEvent, ImportJob, ProcessingAttempt |
 
 See the complete design in [`docs/data-model.md`](docs/data-model.md).
@@ -370,6 +393,14 @@ The following endpoints share this base path:
 | `POST` | `/fields` | Create a field definition |
 | `GET` | `/fields` | List fields in display order |
 | `GET` | `/fields/{field_id}` | Retrieve a field |
+
+### Work items
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/organizations/{organization_id}/work-items` | Create a work item from a published template version |
+| `GET` | `/organizations/{organization_id}/work-items` | List work items |
+| `GET` | `/organizations/{organization_id}/work-items/{work_item_id}` | Retrieve a work item |
 
 ---
 
@@ -546,7 +577,7 @@ npm run build
 - [x] Implement workflow templates
 - [x] Implement template versioning
 - [x] Implement stage and field definitions
-- [ ] Implement work items
+- [x] Implement work items
 - [ ] Implement configurable transitions
 - [ ] Implement assignment rules
 - [ ] Implement requirements
@@ -621,8 +652,8 @@ The first usable release must allow someone to:
 - [x] Create and version workflow templates through the API
 - [x] Configure stages and fields through the API
 - [ ] Load persistent configuration in the frontend
-- [ ] Create work items
-- [ ] Assign ownership
+- [x] Create work items
+- [x] Assign accountable ownership during work-item creation
 - [ ] Complete requirements
 - [ ] Record approvals
 - [ ] Move work through valid stages
